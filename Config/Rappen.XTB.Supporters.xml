@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfSupporter xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <Supporter>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <ToolName>FetchXML Builder</ToolName>
+    </Supporter>
+    <Supporter>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <ToolName>FetchXML Builder</ToolName>
+        <Type>Contribute</Type>
+    </Supporter>
+    <Supporter>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e0</InstallationId>
+        <ToolName>FetchXML Builder</ToolName>
+        <Type>Already</Type>
+    </Supporter>
+    <Supporter>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <ToolName>Bulk Data Updater</ToolName>
+        <Type>Personal</Type>
+    </Supporter>
+    <Supporter>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <ToolName>Plugin Trace Viewer</ToolName>
+    </Supporter>
+    <Supporter>
+        <InstallationId>875ff323-5f7f-43fc-bbb9-b9e1569a1c51</InstallationId>
+        <ToolName>Bulk Data Updater</ToolName>
+        <Type>Personal</Type>
+    </Supporter>
+    <Supporter>
+        <InstallationId>77af91b6-fe9f-4978-b6df-ad1a1a5b12f5</InstallationId>
+        <ToolName>Bulk Data Updater</ToolName>
+        <Type>Contribute</Type>
+    </Supporter>
+</ArrayOfSupporter>
