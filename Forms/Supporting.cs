@@ -35,28 +35,21 @@ namespace Rappen.XTB
             var toolname = plugin?.ToolName;
             try
             {
-                if (reload || settings == null || supportabletool == null || tools == null || tool == null)
+                VerifySettings(toolname, reload);
+                VerifyTool(toolname, reload);
+                if (supportabletool?.Enabled != true)
                 {
-                    settings = ToolSettings.Get();
-                    supportabletool = settings[toolname];
-                    tools = RappenXTB.Load(settings);
-                    tool = tools[toolname];
-                    var version = Assembly.GetExecutingAssembly().GetName().Version;
-                    if (tool.version != version)
+                    if (manual)
                     {
-                        tool.version = version;
-                        tool.VersionRunDate = DateTime.Now;
-                        tools.Save();
+                        var url = tool.GetUrlGeneral();
+                        appinsights?.WriteEvent($"Supporting-General-{toolname}");
+                        Process.Start(url);
                     }
-                    //settings.Save();    // this is only to get a correct format of the tool settings file
-                }
-                if (settings?[toolname]?.Enabled != true)
-                {
                     return;
                 }
                 if (reload || supporters == null)
                 {
-                    supporters = Supporters.DownloadMy(tools.InstallationId, toolname, settings.ContributionCounts);
+                    supporters = Supporters.DownloadMy(tools.InstallationId, toolname, supportabletool.ContributionCounts);
                 }
                 if (!manual)
                 {
@@ -64,7 +57,7 @@ namespace Rappen.XTB
                     {   // I have supportings!
                         return;
                     }
-                    else if (supportabletool.ShowOnlyManual)
+                    else if (!supportabletool.ShowAutomatically)
                     {   // Centerally stopping showing automatically
                         return;
                     }
@@ -72,16 +65,16 @@ namespace Rappen.XTB
                     {   // You will never want to support this tool
                         return;
                     }
-                    else if (tool.FirstRunDate.AddMinutes(settings.ShowMinutesAfterInstall) > DateTime.Now)
+                    else if (tool.FirstRunDate.AddMinutes(settings.ShowMinutesAfterToolInstall) > DateTime.Now)
                     {   // Installed it too soon
                         return;
                     }
                     else if (tool.VersionRunDate > tool.FirstRunDate &&
-                        tool.VersionRunDate.AddMinutes(settings.ShowMinutesAfterNewVersion) > DateTime.Now)
+                        tool.VersionRunDate.AddMinutes(settings.ShowMinutesAfterToolNewVersion) > DateTime.Now)
                     {   // Installed this version too soon
                         return;
                     }
-                    else if (tool.Support.AutoDisplayDate.AddMinutes(settings.ShowMinutesAfterShown) > DateTime.Now)
+                    else if (tool.Support.AutoDisplayDate.AddMinutes(settings.ShowMinutesAfterSupportingShown) > DateTime.Now)
                     {   // Seen this form to soon
                         return;
                     }
@@ -89,7 +82,7 @@ namespace Rappen.XTB
                     {   // Seen this too many times
                         return;
                     }
-                    else if (tool.Support.SubmittedDate.AddMinutes(settings.ShowMinutesAfterSubmittingButNotCompleted) > DateTime.Now)
+                    else if (tool.Support.SubmittedDate.AddMinutes(settings.ShowMinutesAfterSubmitting) > DateTime.Now)
                     {   // Submitted too soon for JR to handle it
                         return;
                     }
@@ -117,12 +110,39 @@ namespace Rappen.XTB
             }
         }
 
+        private static void VerifySettings(string toolname, bool reload = false)
+        {
+            if (reload || settings == null || supportabletool == null)
+            {
+                settings = ToolSettings.Get();
+                supportabletool = settings[toolname];
+                //settings.Save();    // this is only to get a correct format of the tool settings file
+            }
+        }
+
+        private static void VerifyTool(string toolname, bool reload = false)
+        {
+            if (reload || tools == null || tool == null)
+            {
+                tools = RappenXTB.Load(settings);
+                tool = tools[toolname];
+                var version = Assembly.GetExecutingAssembly().GetName().Version;
+                if (tool.version != version)
+                {
+                    tool.version = version;
+                    tool.VersionRunDate = DateTime.Now;
+                    tools.Save();
+                }
+            }
+        }
+
         #endregion Static Public Methods
 
         #region Constructors
 
         private Supporting(AppInsights appinsights, bool manual)
         {
+            this.appinsights = appinsights;
             InitializeComponent();
             lblHeader.Text = tool.Name;
             panInfo.Left = 32;
@@ -334,7 +354,7 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
             else
             {
                 swInfo.Stop();
-                appinsights?.WriteEvent("Supporting-Info", duration: swInfo.ElapsedMilliseconds);
+                appinsights?.WriteEvent("Supporting-" + (panInfo.Tag == btnWhatWhy ? "Why" : "Info"), duration: swInfo.ElapsedMilliseconds);
             }
         }
 
@@ -395,15 +415,15 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
 
     public class ToolSettings
     {
-        private const string ToolSettingsURL = "https://jonasr.app/xtb/toolsettings.xml";
+        private const string FileName = "Rappen.XTB.Settings.xml";
+        private static readonly Uri ToolSettingsURLPath = new Uri("https://raw.githubusercontent.com/rappen/Rappen.XTB.Supporting/main/Config/");
 
         public int SettingsVersion = 1;
         public List<SupportableTool> SupportableTools = new List<SupportableTool>();
-        public bool ContributionCounts = true;  // false
-        public int ShowMinutesAfterInstall = int.MaxValue;    // 60
-        public int ShowMinutesAfterNewVersion = int.MaxValue; // 120
-        public int ShowMinutesAfterShown = int.MaxValue; // 2880m / 48h / 2d
-        public int ShowMinutesAfterSubmittingButNotCompleted = int.MaxValue; // 2880m / 48h / 2d
+        public int ShowMinutesAfterToolInstall = int.MaxValue;    // 60
+        public int ShowMinutesAfterToolNewVersion = int.MaxValue; // 120
+        public int ShowMinutesAfterSupportingShown = int.MaxValue; // 2880m / 48h / 2d
+        public int ShowMinutesAfterSubmitting = int.MaxValue; // 2880m / 48h / 2d
         public int ShowAutoPercentChance = 0;   // 25 (0-100)
         public int ShowAutoRepeatTimes = 0; // 10
 
@@ -455,6 +475,13 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
             "&{formid}_3={country}" +
             "&{formid}_4={email}" +
             "&{formid}_13={tool}" +
+            "&{formid}_31={tool}" +
+            "&{formid}_32={version}" +
+            "&{formid}_33={instid}";
+
+        public string FormUrlGeneral =
+            "https://jonasr.app/supporting/" +
+            "?{formid}_13={tool}" +
             "&{formid}_31={tool}" +
             "&{formid}_32={version}" +
             "&{formid}_33={instid}";
@@ -513,7 +540,7 @@ For questions, contact me at https://jonasr.app/contact.";
         private ToolSettings()
         { }
 
-        public static ToolSettings Get() => new Uri(ToolSettingsURL).DownloadXml(new ToolSettings());
+        public static ToolSettings Get() => new Uri(ToolSettingsURLPath, FileName).DownloadXml<ToolSettings>() ?? new ToolSettings();
 
         public SupportableTool this[string name]
         {
@@ -533,7 +560,7 @@ For questions, contact me at https://jonasr.app/contact.";
             {
                 Directory.CreateDirectory(Paths.SettingsPath);
             }
-            string path = Path.Combine(Paths.SettingsPath, "Rappen.XTB.ToolSettings.xml");
+            string path = Path.Combine(Paths.SettingsPath, FileName);
             XmlSerializerHelper.SerializeToFile(this, path);
         }
     }
@@ -542,16 +569,18 @@ For questions, contact me at https://jonasr.app/contact.";
     {
         public string Name;
         public bool Enabled = false;
-        public bool ShowOnlyManual = true;
+        public bool ShowAutomatically = false;
+        public bool ContributionCounts = true;
     }
 
     public class Supporters : List<Supporter>
     {
-        private const string SupportersURL = "https://jonasr.app/xtb/supporters.xml";
+        private const string FileName = "Rappen.XTB.Supporters.xml";
+        private static readonly Uri SupportersURLPath = new Uri("https://raw.githubusercontent.com/rappen/Rappen.XTB.Supporting/main/Config/");
 
         public static Supporters DownloadMy(Guid InstallationId, string toolname, bool contributionCounts)
         {
-            var result = new Uri(SupportersURL).DownloadXml(new Supporters());
+            var result = new Uri(SupportersURLPath, FileName).DownloadXml<Supporters>() ?? new Supporters();
             result.Where(s =>
                 s.InstallationId != InstallationId ||
                 s.ToolName != toolname ||
@@ -720,6 +749,11 @@ For questions, contact me at https://jonasr.app/contact.";
         public string GetUrlAlready()
         {
             return GenerateUrl(RappenXTB.toolsettings.FormUrlAlready, RappenXTB.toolsettings.FormIdAlready);
+        }
+
+        public string GetUrlGeneral()
+        {
+            return GenerateUrl(RappenXTB.toolsettings.FormUrlGeneral, RappenXTB.toolsettings.FormIdCorporate);
         }
 
         private string GenerateUrl(string template, string form)
