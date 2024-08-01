@@ -35,4 +35,10 @@
         <ToolName>Bulk Data Updater</ToolName>
         <Type>Contribute</Type>
     </Supporter>
+    <Supporter>
+        <InstallationId>360fc573-2b6b-4609-a21c-e9b2ab1e3523</InstallationId>
+        <ToolName>FetchXML Builder</ToolName>
+        <Type>Contribute</Type>
+        <Date>2024-08-01</Date>
+    </Supporter>
 </ArrayOfSupporter>
