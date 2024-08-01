@@ -1,29 +1,23 @@
-<?xml version="1.0" encoding="utf-8"?>
-<ArrayOfSupporter xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+<ArrayOfSupporter>
     <Supporter>
-        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
-        <ToolName>FetchXML Builder</ToolName>
-    </Supporter>
-    <Supporter>
-        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e0</InstallationId>
         <ToolName>FetchXML Builder</ToolName>
         <Type>Company</Type>
         <Date>2024-07-06</Date>
     </Supporter>
     <Supporter>
-        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e0</InstallationId>
         <ToolName>FetchXML Builder</ToolName>
         <Type>Contribute</Type>
         <Date>2024-07-03</Date>
     </Supporter>
     <Supporter>
-        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e0</InstallationId>
         <ToolName>FetchXML Builder</ToolName>
         <Type>Already</Type>
     </Supporter>
     <Supporter>
-        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e7</InstallationId>
+        <InstallationId>3e89b76b-17f5-44bf-a4f8-3fab454a36e0</InstallationId>
         <ToolName>Bulk Data Updater</ToolName>
         <Type>Personal</Type>
     </Supporter>
