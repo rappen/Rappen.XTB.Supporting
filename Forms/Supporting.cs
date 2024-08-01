@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Mail;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using System.Xml;
 using XrmToolBox.AppCode.AppInsights;
@@ -23,16 +24,17 @@ namespace Rappen.XTB
         private static ToolSettings settings;
         private static SupportableTool supportabletool;
         private static Random random = new Random();
+        private static AppInsights appinsights;
 
-        private readonly AppInsights appinsights;
         private readonly Stopwatch sw = new Stopwatch();
         private readonly Stopwatch swInfo = new Stopwatch();
 
         #region Static Public Methods
 
-        public static void ShowIf(PluginControlBase plugin, bool manual, bool reload, AppInsights appinsights)
+        public static void ShowIf(PluginControlBase plugin, bool manual, bool reload, AppInsights appins)
         {
             var toolname = plugin?.ToolName;
+            appinsights = appins;
             try
             {
                 VerifySettings(toolname, reload);
@@ -42,7 +44,7 @@ namespace Rappen.XTB
                     if (manual)
                     {
                         var url = tool.GetUrlGeneral();
-                        appinsights?.WriteEvent($"Supporting-General-{toolname}");
+                        appinsights?.WriteEvent($"Supporting-{tool.Acronym}-General");
                         Process.Start(url);
                     }
                     return;
@@ -96,7 +98,8 @@ namespace Rappen.XTB
                 {
                     tool.Support.Type = SupportType.None;
                 }
-                new Supporting(appinsights, manual).ShowDialog(plugin);
+                appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Open-{(manual ? "Manual" : "Auto")}");
+                new Supporting().ShowDialog(plugin);
                 if (!manual)
                 {
                     tool.Support.AutoDisplayDate = DateTime.Now;
@@ -140,19 +143,12 @@ namespace Rappen.XTB
 
         #region Constructors
 
-        private Supporting(AppInsights appinsights, bool manual)
+        private Supporting()
         {
-            this.appinsights = appinsights;
             InitializeComponent();
             lblHeader.Text = tool.Name;
             panInfo.Left = 32;
             panInfo.Top = 25;
-            if (supporters.Any())
-            {
-                lblAlready.Text = lblAlready.Text.Replace("{tool}", tool.Name);
-                lblAlready.Visible = true;
-                toolTip1.SetToolTip(lblLater, "Close this window.");
-            }
             txtCompanyName.Text = tools.CompanyName;
             txtCompanyEmail.Text = tools.CompanyEmail;
             cmbCompanyUsers.SelectedIndex = tool.Support.UsersIndex;
@@ -169,10 +165,96 @@ namespace Rappen.XTB
             {
                 rbCompany.Checked = true;
             }
-            appinsights?.WriteEvent($"Supporting-Open-{(manual ? "Manual" : "Auto")}");
+            SetAlreadyLink();
+            ResetAllColors();
         }
 
         #endregion Constructors
+
+        #region Private Methods
+
+        private void SetAlreadyLink()
+        {
+            linkAlready.Tag = null;
+            var supporter = supporters.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Type != SupportType.None);
+            switch (supporter?.Type)
+            {
+                case SupportType.Already:
+                    linkAlready.Text = $"I have already\r\nsupported\r\n{tool.Name}";
+                    break;
+
+                case SupportType.Never:
+                    linkAlready.Text = $"I will never\r\nsupport\r\n{tool.Name}";
+                    break;
+
+                case SupportType.Personal:
+                    linkAlready.Text = $"I'm already\r\nsupporting\r\n{tool.Name}";
+                    break;
+
+                case SupportType.Company:
+                    linkAlready.Text = $"We're already\r\nsupporting\r\n{tool.Name}";
+                    break;
+
+                case SupportType.Contribute:
+                    linkAlready.Text = $"I'm already\r\ncontributing to\r\n{tool.Name}";
+                    break;
+
+                case null:
+                    linkAlready.Text = $"Register that\r\nI'm already\r\nsupporting";
+                    linkAlready.Tag = SupportType.Already;
+                    break;
+            }
+            linkAlready.Visible = true;
+            //        toolTip1.SetToolTip(linkClose, "Close this window.");
+        }
+
+        private void ResetAllColors()
+        {
+            panBgBlue.BackColor = settings.clrBackground;
+            panInfoBg.BackColor = settings.clrBackground;
+            helpText.BackColor = settings.clrBackground;
+            rbCompany.ForeColor = rbPersonal.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbPersonal.ForeColor = rbPersonal.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
+            rbPersonalSupporting.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbPersonalContributing.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
+            txtCompanyName.BackColor = settings.clrFldBgNormal;
+            txtCompanyEmail.BackColor = settings.clrFldBgNormal;
+            txtCompanyCountry.BackColor = settings.clrFldBgNormal;
+            cmbCompanyUsers.BackColor = settings.clrFldBgNormal;
+            txtPersonalFirst.BackColor = settings.clrFldBgNormal;
+            txtPersonalLast.BackColor = settings.clrFldBgNormal;
+            txtPersonalEmail.BackColor = settings.clrFldBgNormal;
+            txtPersonalCountry.BackColor = settings.clrFldBgNormal;
+            linkAlready.ForeColor = settings.clrTxtFgDimmed;
+            linkClose.LinkColor = settings.clrTxtFgDimmed;
+        }
+
+        private void SettingAlready()
+        {
+            if (CallingWebForm(tool.GetUrlAlready()))
+            {
+                tool.Support.Type = SupportType.Already;
+                DialogResult = DialogResult.Yes;
+            }
+        }
+
+        private bool CallingWebForm(string url)
+        {
+            if (!string.IsNullOrEmpty(url))
+            {
+                if (MessageBoxEx.Show(this, settings.ConfirmDirecting, "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Asterisk) == DialogResult.OK)
+                {
+                    tool.Support.Type = rbPersonal.Checked ? rbPersonalContributing.Checked ? SupportType.Contribute : SupportType.Personal : SupportType.Company;
+                    tool.Support.SubmittedDate = DateTime.Now;
+                    appinsights?.WriteEvent($"Supporting-{tool.Acronym}-{tool.Support.Type}");
+                    Process.Start(url);
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        #endregion Private Methods
 
         #region Private Event Methods
 
@@ -189,9 +271,9 @@ namespace Rappen.XTB
             }
             else
             {
-                lblLater.Focus();
+                linkClose.Focus();
                 sw.Stop();
-                appinsights?.WriteEvent("Supporting-Close", duration: sw.ElapsedMilliseconds);
+                appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Close", duration: sw.ElapsedMilliseconds);
             }
         }
 
@@ -205,31 +287,12 @@ namespace Rappen.XTB
             }
         }
 
-        private bool CallingWebForm(string url)
-        {
-            if (!string.IsNullOrEmpty(url))
-            {
-                if (MessageBoxEx.Show(this, @"You will now be redirected to the website form
-to finish your support.
-
-Remember, it has to be submitted at the next step!", "Supporting", MessageBoxButtons.OKCancel, MessageBoxIcon.Asterisk) == DialogResult.OK)
-                {
-                    tool.Support.Type = rbPersonal.Checked ? rbPersonalContributing.Checked ? SupportType.Contribute : SupportType.Personal : SupportType.Company;
-                    tool.Support.SubmittedDate = DateTime.Now;
-                    appinsights?.WriteEvent($"Supporting-{tool.Support.Type}");
-                    Process.Start(url);
-                    return true;
-                }
-            }
-            return false;
-        }
-
         private void ctrl_Validating(object sender = null, System.ComponentModel.CancelEventArgs e = null)
         {
             if (sender == null || sender == txtCompanyName)
             {
                 tools.CompanyName = txtCompanyName.Text.Trim().Length >= 3 ? txtCompanyName.Text.Trim() : "";
-                txtCompanyName.BackColor = string.IsNullOrEmpty(tools.CompanyName) ? settings.clrBgInvalid : settings.clrBgNormal;
+                txtCompanyName.BackColor = string.IsNullOrEmpty(tools.CompanyName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtCompanyEmail)
             {
@@ -238,28 +301,28 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
                     tools.CompanyEmail = new MailAddress(txtCompanyEmail.Text).Address.Trim();
                 }
                 catch { }
-                txtCompanyEmail.BackColor = string.IsNullOrEmpty(tools.CompanyEmail) ? settings.clrBgInvalid : settings.clrBgNormal;
+                txtCompanyEmail.BackColor = string.IsNullOrEmpty(tools.CompanyEmail) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtCompanyCountry)
             {
                 tools.CompanyCountry = txtCompanyCountry.Text.Trim().Length >= 2 ? txtCompanyCountry.Text.Trim() : "";
-                txtCompanyCountry.BackColor = string.IsNullOrEmpty(tools.CompanyCountry) ? settings.clrBgInvalid : settings.clrBgNormal;
+                txtCompanyCountry.BackColor = string.IsNullOrEmpty(tools.CompanyCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == cmbCompanyUsers)
             {
                 tool.Support.UsersIndex = cmbCompanyUsers.SelectedIndex;
                 tool.Support.UsersCount = cmbCompanyUsers.Text;
-                cmbCompanyUsers.BackColor = tool.Support.UsersIndex < 1 ? settings.clrBgInvalid : settings.clrBgNormal;
+                cmbCompanyUsers.BackColor = tool.Support.UsersIndex < 1 ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalFirst)
             {
                 tools.PersonalFirstName = txtPersonalFirst.Text.Trim().Length >= 1 ? txtPersonalFirst.Text.Trim() : "";
-                txtPersonalFirst.BackColor = string.IsNullOrEmpty(tools.PersonalFirstName) ? settings.clrBgInvalid : settings.clrBgNormal;
+                txtPersonalFirst.BackColor = string.IsNullOrEmpty(tools.PersonalFirstName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalLast)
             {
                 tools.PersonalLastName = txtPersonalLast.Text.Trim().Length >= 2 ? txtPersonalLast.Text.Trim() : "";
-                txtPersonalLast.BackColor = string.IsNullOrEmpty(tools.PersonalLastName) ? settings.clrBgInvalid : settings.clrBgNormal;
+                txtPersonalLast.BackColor = string.IsNullOrEmpty(tools.PersonalLastName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalEmail)
             {
@@ -268,25 +331,38 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
                     tools.PersonalEmail = new MailAddress(txtPersonalEmail.Text).Address.Trim();
                 }
                 catch { }
-                txtPersonalEmail.BackColor = string.IsNullOrEmpty(tools.PersonalEmail) ? settings.clrBgInvalid : settings.clrBgNormal;
+                txtPersonalEmail.BackColor = string.IsNullOrEmpty(tools.PersonalEmail) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalCountry)
             {
                 tools.PersonalCountry = txtPersonalCountry.Text.Trim().Length >= 2 ? txtPersonalCountry.Text.Trim() : "";
-                txtPersonalCountry.BackColor = string.IsNullOrEmpty(tools.PersonalCountry) ? settings.clrBgInvalid : settings.clrBgNormal;
+                txtPersonalCountry.BackColor = string.IsNullOrEmpty(tools.PersonalCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
         }
 
-        private void lblLater_Click(object sender, EventArgs e)
+        private void linkClose_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
             DialogResult = DialogResult.Retry;
+        }
+
+        private void linkAlready_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        {
+            if (linkAlready.Tag is SupportType type &&
+                type == SupportType.Already)
+            {
+                SettingAlready();
+            }
+            else
+            {
+                MessageBoxEx.Show("Thanks! ❤️", "Supporting");
+            }
         }
 
         private void rbType_CheckedChanged(object sender, EventArgs e)
         {
             SuspendLayout();
-            rbCompany.ForeColor = rbPersonal.Checked ? settings.clrFgDimmed : settings.clrFgNormal;
-            rbPersonal.ForeColor = rbPersonal.Checked ? settings.clrFgNormal : settings.clrFgDimmed;
+            rbCompany.ForeColor = rbPersonal.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbPersonal.ForeColor = rbPersonal.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             panPersonal.Left = panCorp.Left;
             panPersonal.Top = panCorp.Top;
             panPersonal.Visible = rbPersonal.Checked;
@@ -297,15 +373,9 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
 
         private void rbPersonalMonetary_CheckedChanged(object sender, EventArgs e)
         {
-            rbPersonalSupporting.ForeColor = rbPersonalContributing.Checked ? settings.clrFgDimmed : settings.clrFgNormal;
-            rbPersonalContributing.ForeColor = rbPersonalContributing.Checked ? settings.clrFgNormal : settings.clrFgDimmed;
+            rbPersonalSupporting.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbPersonalContributing.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             btnSubmit.ImageIndex = rbPersonalContributing.Checked ? 2 : 1;
-        }
-
-        private void linkHelping_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
-        {
-            TopMost = false;
-            UrlUtils.OpenUrl(sender);
         }
 
         private void helpText_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -354,7 +424,7 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
             else
             {
                 swInfo.Stop();
-                appinsights?.WriteEvent("Supporting-" + (panInfo.Tag == btnWhatWhy ? "Why" : "Info"), duration: swInfo.ElapsedMilliseconds);
+                appinsights?.WriteEvent($"Supporting-{tool.Acronym}-{(panInfo.Tag == btnWhatWhy ? "Why" : "Info")}", duration: swInfo.ElapsedMilliseconds);
             }
         }
 
@@ -365,11 +435,7 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
 
         private void tsmiAlready_Click(object sender, EventArgs e)
         {
-            if (CallingWebForm(tool.GetUrlAlready()))
-            {
-                tool.Support.Type = SupportType.Already;
-                DialogResult = DialogResult.Yes;
-            }
+            SettingAlready();
         }
 
         private void tsmiNever_Click(object sender, EventArgs e)
@@ -382,11 +448,15 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
         {
             if (sender is RadioButton rb)
             {
-                rb.ForeColor = settings.clrFgNormal;
+                rb.ForeColor = settings.clrTxtFgNormal;
             }
-            if (sender is Label lbl)
+            else if (sender is LinkLabel link)
             {
-                lbl.ForeColor = settings.clrFgNormal;
+                link.LinkColor = settings.clrTxtFgNormal;
+            }
+            else if (sender is Label lbl)
+            {
+                lbl.ForeColor = settings.clrTxtFgNormal;
             }
         }
 
@@ -396,18 +466,17 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
             {
                 if (!rb.Checked)
                 {
-                    rb.ForeColor = settings.clrFgDimmed;
+                    rb.ForeColor = settings.clrTxtFgDimmed;
                 }
+            }
+            else if (sender is LinkLabel link)
+            {
+                link.LinkColor = settings.clrTxtFgDimmed;
             }
             else if (sender is Label lbl)
             {
-                lbl.ForeColor = settings.clrFgDimmed;
+                lbl.ForeColor = settings.clrTxtFgDimmed;
             }
-        }
-
-        private void lblAlready_Click(object sender, EventArgs e)
-        {
-            MessageBoxEx.Show("Thanks! ❤️", "Supporting");
         }
 
         #endregion Private Event Methods
@@ -486,15 +555,23 @@ Remember, it has to be submitted at the next step!", "Supporting", MessageBoxBut
             "&{formid}_32={version}" +
             "&{formid}_33={instid}";
 
-        public string ColorFgNormal = "FFFFFF00";
-        public string ColorFgDimmed = "FFD2B48C";
-        public string ColorBgNormal = "FF0063FF";
-        public string ColorBgInvalid = "FFF06565";
+        public string ColorBg = "FF0042AD";
+        public string ColorFieldBgNormal = "FF0063FF";
+        public string ColorFieldBgInvalid = "FFF06565";
+        public string ColorTextFgNormal = "FFFFFF00";
+        public string ColorTextFgDimmed = "FFD2B48C";
 
-        public Color clrFgNormal => Color.FromArgb(int.Parse(ColorFgNormal, System.Globalization.NumberStyles.HexNumber));
-        public Color clrFgDimmed => Color.FromArgb(int.Parse(ColorFgDimmed, System.Globalization.NumberStyles.HexNumber));
-        public Color clrBgNormal => Color.FromArgb(int.Parse(ColorBgNormal, System.Globalization.NumberStyles.HexNumber));
-        public Color clrBgInvalid => Color.FromArgb(int.Parse(ColorBgInvalid, System.Globalization.NumberStyles.HexNumber));
+        public Color clrBackground => Color.FromArgb(int.Parse(ColorBg, System.Globalization.NumberStyles.HexNumber));
+        public Color clrTxtFgNormal => Color.FromArgb(int.Parse(ColorTextFgNormal, System.Globalization.NumberStyles.HexNumber));
+        public Color clrTxtFgDimmed => Color.FromArgb(int.Parse(ColorTextFgDimmed, System.Globalization.NumberStyles.HexNumber));
+        public Color clrFldBgNormal => Color.FromArgb(int.Parse(ColorFieldBgNormal, System.Globalization.NumberStyles.HexNumber));
+        public Color clrFldBgInvalid => Color.FromArgb(int.Parse(ColorFieldBgInvalid, System.Globalization.NumberStyles.HexNumber));
+
+        public string ConfirmDirecting = @"You will now be directed to the website form
+to finish Your flavor of support.
+After it is submitted, Jonas will handle it soon.
+
+NOTE: It has to be submitted during the next step!";
 
         public string HelpWhyTitle = "Community Tools are Conscienceware.";
 
@@ -599,13 +676,14 @@ For questions, contact me at https://jonasr.app/contact.";
         public Guid InstallationId;
         public string ToolName;
         public SupportType Type;
+        public DateTime Date;
 
-        public override string ToString() => $"{Type} {ToolName}";
+        public override string ToString() => $"{InstallationId} {Type} {ToolName} {Date}";
     }
 
     public class RappenXTB
     {
-        private int settingversion;
+        private int settingversion = -1;
         internal ToolSettings toolsettings;
 
         public int SettingsVersion
@@ -613,7 +691,7 @@ For questions, contact me at https://jonasr.app/contact.";
             get => settingversion;
             set
             {
-                if (settingversion != 0 && value != settingversion && Tools?.Count() > 0)
+                if (settingversion != -1 && value != settingversion && Tools?.Count() > 0)
                 {
                     Tools.ForEach(s => s.Support.AutoDisplayCount = 0);
                 }
@@ -686,6 +764,8 @@ For questions, contact me at https://jonasr.app/contact.";
     public class Tool
     {
         private Version _version;
+        private string name;
+
         internal RappenXTB RappenXTB;
 
         internal Version version
@@ -701,7 +781,57 @@ For questions, contact me at https://jonasr.app/contact.";
             }
         }
 
-        public string Name;
+        public string Name
+        {
+            get => name;
+            set
+            {
+                name = value;
+                switch (name)
+                {
+                    // Tools that don't have three upper cases
+                    case "FetchXML Builderx":
+                        Acronym = "FXB";
+                        break;
+
+                    case "UML Diagram Generator":
+                        Acronym = "UML";
+                        break;
+
+                    case "XrmToolBox Integration Tester":
+                        Acronym = "XIT";
+                        break;
+
+                    case "Portal Entity Permission Manager":
+                        Acronym = "EPM";
+                        break;
+
+                    case "XRM Tokens Runner":
+                        Acronym = "XTR";
+                        break;
+
+                    case "Shuffle Builder":
+                        Acronym = "ShB";
+                        break;
+
+                    case "Shuffle Runner":
+                        Acronym = "ShR";
+                        break;
+
+                    case "Shuffle Deployer":
+                        Acronym = "ShD";
+                        break;
+
+                    // Tools that have three upper cases
+                    default:
+                        var pattern = @"((?<=^|\s)(\w{1})|([A-Z]))";
+                        Acronym = string.Join(string.Empty, Regex.Matches(Name, pattern).OfType<Match>().Select(x => x.Value.ToUpper()));
+                        break;
+                }
+            }
+        }
+
+        internal string Acronym { get; private set; }
 
         public string Version
         {

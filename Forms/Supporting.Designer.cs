@@ -47,8 +47,7 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.txtPersonalFirst = new System.Windows.Forms.TextBox();
             this.txtPersonalLast = new System.Windows.Forms.TextBox();
-            this.lblLater = new System.Windows.Forms.Label();
-            this.lblAlready = new System.Windows.Forms.Label();
+            this.linkAlready = new System.Windows.Forms.LinkLabel();
             this.rbPersonalContributing = new System.Windows.Forms.RadioButton();
             this.rbPersonalSupporting = new System.Windows.Forms.RadioButton();
             this.txtPersonalCountry = new System.Windows.Forms.TextBox();
@@ -69,7 +68,7 @@
             this.lblIEmail = new System.Windows.Forms.Label();
             this.lblIName = new System.Windows.Forms.Label();
             this.panInfo = new System.Windows.Forms.Panel();
-            this.panel2 = new System.Windows.Forms.Panel();
+            this.panInfoBg = new System.Windows.Forms.Panel();
             this.btnInfoClose = new System.Windows.Forms.Button();
             this.helpText = new System.Windows.Forms.RichTextBox();
             this.helpTitle = new System.Windows.Forms.Label();
@@ -77,13 +76,14 @@
             this.label2 = new System.Windows.Forms.Label();
             this.panBgYellow = new System.Windows.Forms.Panel();
             this.panBgBlue = new System.Windows.Forms.Panel();
+            this.linkClose = new System.Windows.Forms.LinkLabel();
             this.panel1.SuspendLayout();
             this.panCorp.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             this.panPersonal.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panInfo.SuspendLayout();
-            this.panel2.SuspendLayout();
+            this.panInfoBg.SuspendLayout();
             this.panBgYellow.SuspendLayout();
             this.panBgBlue.SuspendLayout();
             this.SuspendLayout();
@@ -275,38 +275,23 @@
             this.toolTip1.SetToolTip(this.txtPersonalLast, "Last Name");
             this.txtPersonalLast.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
-            // lblLater
+            // linkAlready
             // 
-            this.lblLater.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.lblLater.AutoSize = true;
-            this.lblLater.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblLater.ForeColor = System.Drawing.Color.Tan;
-            this.lblLater.Location = new System.Drawing.Point(463, 380);
-            this.lblLater.Name = "lblLater";
-            this.lblLater.Size = new System.Drawing.Size(41, 18);
-            this.lblLater.TabIndex = 101;
-            this.lblLater.Text = "Close";
-            this.lblLater.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-            this.toolTip1.SetToolTip(this.lblLater, "Close this window.\r\nYou will get a new chance to support later!");
-            this.lblLater.Click += new System.EventHandler(this.lblLater_Click);
-            this.lblLater.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
-            this.lblLater.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
-            // 
-            // lblAlready
-            // 
-            this.lblAlready.AutoSize = true;
-            this.lblAlready.Cursor = System.Windows.Forms.Cursors.Hand;
-            this.lblAlready.ForeColor = System.Drawing.Color.Tan;
-            this.lblAlready.Location = new System.Drawing.Point(9, 344);
-            this.lblAlready.Name = "lblAlready";
-            this.lblAlready.Size = new System.Drawing.Size(82, 54);
-            this.lblAlready.TabIndex = 102;
-            this.lblAlready.Text = "I\'m already\r\nsupporting\r\n{tool}!";
-            this.toolTip1.SetToolTip(this.lblAlready, "I have already supported this tool in one way or another!");
-            this.lblAlready.Visible = false;
-            this.lblAlready.Click += new System.EventHandler(this.lblAlready_Click);
-            this.lblAlready.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
-            this.lblAlready.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
+            this.linkAlready.ActiveLinkColor = System.Drawing.Color.DeepSkyBlue;
+            this.linkAlready.AutoSize = true;
+            this.linkAlready.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.linkAlready.LinkColor = System.Drawing.Color.Tan;
+            this.linkAlready.Location = new System.Drawing.Point(9, 344);
+            this.linkAlready.Name = "linkAlready";
+            this.linkAlready.Size = new System.Drawing.Size(82, 54);
+            this.linkAlready.TabIndex = 102;
+            this.linkAlready.TabStop = true;
+            this.linkAlready.Text = "I\'m already\r\nsupporting\r\n{tool}!";
+            this.toolTip1.SetToolTip(this.linkAlready, "I have already supported this tool in one way or another!");
+            this.linkAlready.Visible = false;
+            this.linkAlready.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkAlready_LinkClicked);
+            this.linkAlready.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
+            this.linkAlready.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
             // 
             // rbPersonalContributing
             // 
@@ -316,7 +301,7 @@
             this.rbPersonalContributing.Name = "rbPersonalContributing";
             this.rbPersonalContributing.Size = new System.Drawing.Size(105, 22);
             this.rbPersonalContributing.TabIndex = 1;
-            this.rbPersonalContributing.Text = "Contribution";
+            this.rbPersonalContributing.Text = "Contributing";
             this.toolTip1.SetToolTip(this.rbPersonalContributing, "If you don\'t want to do any proper support, you can help Jonas\r\nwith development," +
         " fixing bugs, having new ideas, documentation, etc.");
             this.rbPersonalContributing.UseVisualStyleBackColor = true;
@@ -408,7 +393,7 @@
             this.btnInfo.Location = new System.Drawing.Point(475, 12);
             this.btnInfo.Name = "btnInfo";
             this.btnInfo.Size = new System.Drawing.Size(30, 30);
-            this.btnInfo.TabIndex = 105;
+            this.btnInfo.TabIndex = 13;
             this.toolTip1.SetToolTip(this.btnInfo, "Technical information about how this works,\r\nwhat is stored, where it is stored, " +
         "how to stop\r\npromping about supporting, etc.");
             this.btnInfo.UseVisualStyleBackColor = true;
@@ -516,7 +501,7 @@
             // 
             this.panInfo.BackColor = System.Drawing.Color.Yellow;
             this.panInfo.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panInfo.Controls.Add(this.panel2);
+            this.panInfo.Controls.Add(this.panInfoBg);
             this.panInfo.Location = new System.Drawing.Point(30, 663);
             this.panInfo.Name = "panInfo";
             this.panInfo.Size = new System.Drawing.Size(454, 376);
@@ -524,20 +509,20 @@
             this.panInfo.Visible = false;
             this.panInfo.VisibleChanged += new System.EventHandler(this.panInfo_VisibleChanged);
             // 
-            // panel2
+            // panInfoBg
             // 
-            this.panel2.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
+            this.panInfoBg.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-            this.panel2.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(66)))), ((int)(((byte)(173)))));
-            this.panel2.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-            this.panel2.Controls.Add(this.btnInfoClose);
-            this.panel2.Controls.Add(this.helpText);
-            this.panel2.Controls.Add(this.helpTitle);
-            this.panel2.Location = new System.Drawing.Point(3, 3);
-            this.panel2.Name = "panel2";
-            this.panel2.Size = new System.Drawing.Size(446, 368);
-            this.panel2.TabIndex = 0;
+            this.panInfoBg.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(66)))), ((int)(((byte)(173)))));
+            this.panInfoBg.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.panInfoBg.Controls.Add(this.btnInfoClose);
+            this.panInfoBg.Controls.Add(this.helpText);
+            this.panInfoBg.Controls.Add(this.helpTitle);
+            this.panInfoBg.Location = new System.Drawing.Point(3, 3);
+            this.panInfoBg.Name = "panInfoBg";
+            this.panInfoBg.Size = new System.Drawing.Size(446, 368);
+            this.panInfoBg.TabIndex = 0;
             // 
             // btnInfoClose
             // 
@@ -619,6 +604,7 @@
             // panBgBlue
             // 
             this.panBgBlue.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(66)))), ((int)(((byte)(173)))));
+            this.panBgBlue.Controls.Add(this.linkClose);
             this.panBgBlue.Controls.Add(this.panInfo);
             this.panBgBlue.Controls.Add(this.btnWhatWhy);
             this.panBgBlue.Controls.Add(this.panPersonal);
@@ -627,16 +613,33 @@
             this.panBgBlue.Controls.Add(this.panel1);
             this.panBgBlue.Controls.Add(this.label3);
             this.panBgBlue.Controls.Add(this.lblHeader);
-            this.panBgBlue.Controls.Add(this.lblLater);
             this.panBgBlue.Controls.Add(this.label1);
             this.panBgBlue.Controls.Add(this.label2);
-            this.panBgBlue.Controls.Add(this.lblAlready);
+            this.panBgBlue.Controls.Add(this.linkAlready);
             this.panBgBlue.Controls.Add(this.btnInfo);
             this.panBgBlue.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panBgBlue.Location = new System.Drawing.Point(4, 4);
             this.panBgBlue.Name = "panBgBlue";
             this.panBgBlue.Size = new System.Drawing.Size(521, 418);
             this.panBgBlue.TabIndex = 0;
+            // 
+            // linkClose
+            // 
+            this.linkClose.ActiveLinkColor = System.Drawing.Color.DeepSkyBlue;
+            this.linkClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkClose.AutoSize = true;
+            this.linkClose.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.linkClose.LinkColor = System.Drawing.Color.Tan;
+            this.linkClose.Location = new System.Drawing.Point(463, 380);
+            this.linkClose.Name = "linkClose";
+            this.linkClose.Size = new System.Drawing.Size(41, 18);
+            this.linkClose.TabIndex = 106;
+            this.linkClose.TabStop = true;
+            this.linkClose.Text = "Close";
+            this.toolTip1.SetToolTip(this.linkClose, "Close this window.\r\nYou will get a new chance to support later!");
+            this.linkClose.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkClose_LinkClicked);
+            this.linkClose.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
+            this.linkClose.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
             // 
             // Supporting
             // 
@@ -669,7 +672,7 @@
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             this.panInfo.ResumeLayout(false);
-            this.panel2.ResumeLayout(false);
+            this.panInfoBg.ResumeLayout(false);
             this.panBgYellow.ResumeLayout(false);
             this.panBgBlue.ResumeLayout(false);
             this.panBgBlue.PerformLayout();
@@ -704,13 +707,12 @@
         private System.Windows.Forms.Label lblIName;
         private System.Windows.Forms.TextBox txtPersonalFirst;
         private System.Windows.Forms.Panel panInfo;
-        private System.Windows.Forms.Panel panel2;
+        private System.Windows.Forms.Panel panInfoBg;
         private System.Windows.Forms.RichTextBox helpText;
         private System.Windows.Forms.Label helpTitle;
         private System.Windows.Forms.Button btnWhatWhy;
         private System.Windows.Forms.Button btnInfoClose;
-        private System.Windows.Forms.Label lblLater;
-        private System.Windows.Forms.Label lblAlready;
+        private System.Windows.Forms.LinkLabel linkAlready;
         private System.Windows.Forms.ImageList pics;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.RadioButton rbPersonalContributing;
@@ -726,5 +728,6 @@
         private System.Windows.Forms.ToolStripMenuItem tsmiAlready;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.Button btnInfo;
+        private System.Windows.Forms.LinkLabel linkClose;
     }
 }
