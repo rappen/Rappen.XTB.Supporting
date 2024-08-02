@@ -61,6 +61,7 @@
             this.tsmiAlready = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmiNever = new System.Windows.Forms.ToolStripMenuItem();
+            this.linkClose = new System.Windows.Forms.LinkLabel();
             this.panPersonal = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
@@ -76,7 +77,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.panBgYellow = new System.Windows.Forms.Panel();
             this.panBgBlue = new System.Windows.Forms.Panel();
-            this.linkClose = new System.Windows.Forms.LinkLabel();
             this.panel1.SuspendLayout();
             this.panCorp.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -435,6 +435,24 @@
             this.tsmiNever.Text = "I will never support this tool";
             this.tsmiNever.Click += new System.EventHandler(this.tsmiNever_Click);
             // 
+            // linkClose
+            // 
+            this.linkClose.ActiveLinkColor = System.Drawing.Color.DeepSkyBlue;
+            this.linkClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.linkClose.AutoSize = true;
+            this.linkClose.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.linkClose.LinkColor = System.Drawing.Color.Tan;
+            this.linkClose.Location = new System.Drawing.Point(463, 380);
+            this.linkClose.Name = "linkClose";
+            this.linkClose.Size = new System.Drawing.Size(41, 18);
+            this.linkClose.TabIndex = 106;
+            this.linkClose.TabStop = true;
+            this.linkClose.Text = "Close";
+            this.toolTip1.SetToolTip(this.linkClose, "Close this window.\r\nYou will get a new chance to support later!");
+            this.linkClose.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkClose_LinkClicked);
+            this.linkClose.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
+            this.linkClose.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
+            // 
             // panPersonal
             // 
             this.panPersonal.Controls.Add(this.label4);
@@ -604,7 +622,6 @@
             // panBgBlue
             // 
             this.panBgBlue.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(66)))), ((int)(((byte)(173)))));
-            this.panBgBlue.Controls.Add(this.linkClose);
             this.panBgBlue.Controls.Add(this.panInfo);
             this.panBgBlue.Controls.Add(this.btnWhatWhy);
             this.panBgBlue.Controls.Add(this.panPersonal);
@@ -617,29 +634,12 @@
             this.panBgBlue.Controls.Add(this.label2);
             this.panBgBlue.Controls.Add(this.linkAlready);
             this.panBgBlue.Controls.Add(this.btnInfo);
+            this.panBgBlue.Controls.Add(this.linkClose);
             this.panBgBlue.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panBgBlue.Location = new System.Drawing.Point(4, 4);
             this.panBgBlue.Name = "panBgBlue";
             this.panBgBlue.Size = new System.Drawing.Size(521, 418);
             this.panBgBlue.TabIndex = 0;
-            // 
-            // linkClose
-            // 
-            this.linkClose.ActiveLinkColor = System.Drawing.Color.DeepSkyBlue;
-            this.linkClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-            this.linkClose.AutoSize = true;
-            this.linkClose.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.linkClose.LinkColor = System.Drawing.Color.Tan;
-            this.linkClose.Location = new System.Drawing.Point(463, 380);
-            this.linkClose.Name = "linkClose";
-            this.linkClose.Size = new System.Drawing.Size(41, 18);
-            this.linkClose.TabIndex = 106;
-            this.linkClose.TabStop = true;
-            this.linkClose.Text = "Close";
-            this.toolTip1.SetToolTip(this.linkClose, "Close this window.\r\nYou will get a new chance to support later!");
-            this.linkClose.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkClose_LinkClicked);
-            this.linkClose.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
-            this.linkClose.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
             // 
             // Supporting
             // 

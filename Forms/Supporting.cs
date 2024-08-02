@@ -55,7 +55,7 @@ namespace Rappen.XTB
                 }
                 if (!manual)
                 {
-                    if (supporters.Count > 0)
+                    if (supporters.Any(s => s.Type != SupportType.None && s.Type != SupportType.Never))
                     {   // I have supportings!
                         return;
                     }
@@ -99,7 +99,7 @@ namespace Rappen.XTB
                     tool.Support.Type = SupportType.None;
                 }
                 appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Open-{(manual ? "Manual" : "Auto")}");
-                new Supporting().ShowDialog(plugin);
+                new Supporting(manual).ShowDialog(plugin);
                 if (!manual)
                 {
                     tool.Support.AutoDisplayDate = DateTime.Now;
@@ -143,7 +143,7 @@ namespace Rappen.XTB
 
         #region Constructors
 
-        private Supporting()
+        private Supporting(bool manual)
         {
             InitializeComponent();
             lblHeader.Text = tool.Name;
@@ -165,6 +165,10 @@ namespace Rappen.XTB
             {
                 rbCompany.Checked = true;
             }
+            if (manual)
+            {
+                toolTip1.SetToolTip(linkClose, "Close this window.");
+            }
             SetAlreadyLink();
             ResetAllColors();
         }
@@ -179,33 +183,39 @@ namespace Rappen.XTB
             var supporter = supporters.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Type != SupportType.None);
             switch (supporter?.Type)
             {
-                case SupportType.Already:
-                    linkAlready.Text = $"I have already\r\nsupported\r\n{tool.Name}";
-                    break;
-
-                case SupportType.Never:
-                    linkAlready.Text = $"I will never\r\nsupport\r\n{tool.Name}";
+                case SupportType.Company:
+                    linkAlready.Text = $"We're already\r\nsupporting\r\n{tool.Name}";
+                    toolTip1.SetToolTip(linkAlready, $"We know that your company is supporting\r\n{tool.Name}\r\nThank You!");
                     break;
 
                 case SupportType.Personal:
                     linkAlready.Text = $"I'm already\r\nsupporting\r\n{tool.Name}";
-                    break;
-
-                case SupportType.Company:
-                    linkAlready.Text = $"We're already\r\nsupporting\r\n{tool.Name}";
+                    toolTip1.SetToolTip(linkAlready, $"We know that you are supporting\r\n{tool.Name}\r\nThank You!");
                     break;
 
                 case SupportType.Contribute:
                     linkAlready.Text = $"I'm already\r\ncontributing to\r\n{tool.Name}";
+                    toolTip1.SetToolTip(linkAlready, $"We know that you are contributing to\r\n{tool.Name}\r\nThank You!");
+                    break;
+
+                case SupportType.Already:
+                    linkAlready.Text = $"I have already\r\nsupported\r\n{tool.Name}";
+                    toolTip1.SetToolTip(linkAlready, $"We know that you have already supported\r\n{tool.Name}\r\nThank You!");
+                    break;
+
+                case SupportType.Never:
+                    linkAlready.Text = $"I will never\r\nsupport\r\n{tool.Name}";
+                    toolTip1.SetToolTip(linkAlready, $"For some strange reason,\r\nyou will never support\r\n{tool.Name}\r\nThink again?");
+                    linkAlready.Tag = SupportType.Never;
                     break;
 
                 case null:
                     linkAlready.Text = $"Register that\r\nI'm already\r\nsupporting";
+                    toolTip1.SetToolTip(linkAlready, $"If you have already supported in any way to\r\n{tool.Name}\r\nClick here to let me know, and\r\nthis popup will not appear again!");
                     linkAlready.Tag = SupportType.Already;
                     break;
             }
             linkAlready.Visible = true;
-            //        toolTip1.SetToolTip(linkClose, "Close this window.");
         }
 
         private void ResetAllColors()
@@ -347,14 +357,20 @@ namespace Rappen.XTB
 
         private void linkAlready_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (linkAlready.Tag is SupportType type &&
-                type == SupportType.Already)
+            var type = linkAlready.Tag as SupportType?;
+            switch (type)
             {
-                SettingAlready();
-            }
-            else
-            {
-                MessageBoxEx.Show("Thanks! ❤️", "Supporting");
+                case SupportType.Already:
+                    SettingAlready();
+                    break;
+
+                case SupportType.Never:
+                    MessageBoxEx.Show("You can change your mind right now or later.", "Supporting");
+                    break;
+
+                default:
+                    MessageBoxEx.Show("Thanks! ❤️", "Supporting");
+                    break;
             }
         }
 
@@ -567,9 +583,9 @@ namespace Rappen.XTB
         public Color clrFldBgNormal => Color.FromArgb(int.Parse(ColorFieldBgNormal, System.Globalization.NumberStyles.HexNumber));
         public Color clrFldBgInvalid => Color.FromArgb(int.Parse(ColorFieldBgInvalid, System.Globalization.NumberStyles.HexNumber));
 
-        public string ConfirmDirecting = @"You will now be directed to the website form
+        public string ConfirmDirecting = @"You will now be redirected to the website form
 to finish Your flavor of support.
-After it is submitted, Jonas will handle it soon.
+After the form is submitted, Jonas will handle it soon.
 
 NOTE: It has to be submitted during the next step!";
 
@@ -606,7 +622,7 @@ You will receive an official receipt immediately and, if needed, an invoice. Sup
 
 When you click the big button here, the information you entered here will be included in the form on my website, jonasr.app, and a few hidden info: tool name, version, and your XrmToolBox 'InstallationId' (a random Guid generated the first time you use the toolbox). If you are curious, you can find your ID here: https://jonasr.app/xtb-finding-installationid.
 
-Since I would like to be very clear and honest, we store your XrmToolBox InstallationId on a server to be able to know that you are supporting it in some way. There is nothing about the amount or contribution; I am not interested in hacking this info.
+Since I would like to be very clear and transparent - we store your XrmToolBox InstallationId on a server to be able to know that you are supporting it in some way. There is nothing about the amount or contribution; I am not interested in hacking this info.
 
 The button in the top-right corner opens this info. You can also right-click on it and find more options, especially:
 * I have already supported this tool — use this to tell me that you already support this tool in some way so that this prompt will not ask you again.
@@ -660,10 +676,7 @@ For questions, contact me at https://jonasr.app/contact.";
             var result = new Uri(SupportersURLPath, FileName).DownloadXml<Supporters>() ?? new Supporters();
             result.Where(s =>
                 s.InstallationId != InstallationId ||
-                s.ToolName != toolname ||
-                s.Type == SupportType.None ||
-                s.Type == SupportType.Never ||
-                (!contributionCounts && s.Type == SupportType.Contribute))
+                s.ToolName != toolname)
                 .ToList().ForEach(s => result.Remove(s));
             return result;
         }
@@ -857,7 +870,7 @@ For questions, contact me at https://jonasr.app/contact.";
             if (string.IsNullOrEmpty(RappenXTB.CompanyName) ||
                 string.IsNullOrEmpty(RappenXTB.CompanyEmail) ||
                 string.IsNullOrEmpty(RappenXTB.CompanyCountry) ||
-              Support.UsersIndex < 1)
+                Support.UsersIndex < 1)
             {
                 return null;
             }
