@@ -116,7 +116,7 @@
             this.txtCompanyName.Name = "txtCompanyName";
             this.txtCompanyName.Size = new System.Drawing.Size(292, 25);
             this.txtCompanyName.TabIndex = 1;
-            this.toolTip1.SetToolTip(this.txtCompanyName, "Name of your company");
+            this.toolTip1.SetToolTip(this.txtCompanyName, "Name of your company (at least 3 characters)");
             this.txtCompanyName.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
             // label3

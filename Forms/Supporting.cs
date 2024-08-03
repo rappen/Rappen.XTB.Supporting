@@ -322,7 +322,6 @@ namespace Rappen.XTB
             {
                 tool.Support.UsersIndex = cmbCompanyUsers.SelectedIndex;
                 tool.Support.UsersCount = cmbCompanyUsers.Text;
-                cmbCompanyUsers.BackColor = tool.Support.UsersIndex < 1 ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalFirst)
             {
@@ -869,8 +868,7 @@ For questions, contact me at https://jonasr.app/contact.";
         {
             if (string.IsNullOrEmpty(RappenXTB.CompanyName) ||
                 string.IsNullOrEmpty(RappenXTB.CompanyEmail) ||
-                string.IsNullOrEmpty(RappenXTB.CompanyCountry) ||
-                Support.UsersIndex < 1)
+                string.IsNullOrEmpty(RappenXTB.CompanyCountry))
             {
                 return null;
             }
