@@ -4,7 +4,7 @@
   <SupportableTools>
     <SupportableTool>
       <Name>FetchXML Builder</Name>
-      <Enabled>true</Enabled>
+      <Enabled>false</Enabled>
       <ShowAutomatically>true</ShowAutomatically>
     </SupportableTool>
     <SupportableTool>
