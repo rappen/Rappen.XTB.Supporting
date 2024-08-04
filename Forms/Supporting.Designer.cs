@@ -191,7 +191,8 @@
             this.txtCompanyCountry.Name = "txtCompanyCountry";
             this.txtCompanyCountry.Size = new System.Drawing.Size(292, 25);
             this.txtCompanyCountry.TabIndex = 3;
-            this.toolTip1.SetToolTip(this.txtCompanyCountry, "Where is your company based?");
+            this.toolTip1.SetToolTip(this.txtCompanyCountry, "Where is your company based?\r\nEnter either Country name (e.g. Sweden) or code (e." +
+        "g. SE)");
             this.txtCompanyCountry.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
             // lblCountry
@@ -332,7 +333,7 @@
             this.txtPersonalCountry.Name = "txtPersonalCountry";
             this.txtPersonalCountry.Size = new System.Drawing.Size(292, 25);
             this.txtPersonalCountry.TabIndex = 4;
-            this.toolTip1.SetToolTip(this.txtPersonalCountry, "Where are you from? Country name or country code.");
+            this.toolTip1.SetToolTip(this.txtPersonalCountry, "Where are you from?\r\nEnter either Country name (e.g. Sweden) or code (e.g. SE)");
             this.txtPersonalCountry.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
             // txtPersonalEmail
