@@ -113,6 +113,13 @@ namespace Rappen.XTB
             }
         }
 
+        public static bool IsEnabled(PluginControlBase plugin)
+        {
+            var toolname = plugin?.ToolName;
+            VerifySettings(toolname);
+            return supportabletool?.Enabled == true;
+        }
+
         private static void VerifySettings(string toolname, bool reload = false)
         {
             if (reload || settings == null || supportabletool == null)
