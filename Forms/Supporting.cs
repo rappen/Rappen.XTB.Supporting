@@ -807,7 +807,7 @@ For questions, contact me at https://jonasr.app/contact.";
                 switch (name)
                 {
                     // Tools that don't have three upper cases
-                    case "FetchXML Builderx":
+                    case "FetchXML Builder":
                         Acronym = "FXB";
                         break;
 
