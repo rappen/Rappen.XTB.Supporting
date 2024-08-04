@@ -254,6 +254,16 @@
             this.lblInvoiceemail.TabIndex = 3;
             this.lblInvoiceemail.Text = "Email";
             // 
+            // toolTip1
+            // 
+            this.toolTip1.AutomaticDelay = 50;
+            this.toolTip1.AutoPopDelay = 5000;
+            this.toolTip1.BackColor = System.Drawing.Color.Yellow;
+            this.toolTip1.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(66)))), ((int)(((byte)(173)))));
+            this.toolTip1.InitialDelay = 50;
+            this.toolTip1.IsBalloon = true;
+            this.toolTip1.ReshowDelay = 10;
+            // 
             // txtPersonalFirst
             // 
             this.txtPersonalFirst.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
@@ -372,8 +382,8 @@
             this.btnSubmit.Padding = new System.Windows.Forms.Padding(8);
             this.btnSubmit.Size = new System.Drawing.Size(210, 68);
             this.btnSubmit.TabIndex = 4;
-            this.toolTip1.SetToolTip(this.btnSubmit, "Click to forward you to the supporting form on JonasR.app.\r\nSubmitting will bring" +
-        " the information here into the following step online.");
+            this.toolTip1.SetToolTip(this.btnSubmit, "Click to redirect to the Supporting form on website JonasR.app\r\nwhere you can fin" +
+        "allize your type of support.");
             this.btnSubmit.UseVisualStyleBackColor = true;
             this.btnSubmit.Click += new System.EventHandler(this.btnSubmit_Click);
             // 

@@ -213,12 +213,12 @@ namespace Rappen.XTB
                 case SupportType.Never:
                     linkAlready.Text = $"I will never\r\nsupport\r\n{tool.Name}";
                     toolTip1.SetToolTip(linkAlready, $"For some strange reason,\r\nyou will never support\r\n{tool.Name}\r\nThink again?");
-                    linkAlready.Tag = SupportType.Never;
+                    linkAlready.LinkArea = new LinkArea(0, 0);
                     break;
 
                 case null:
-                    linkAlready.Text = $"Register that\r\nI'm already\r\nsupporting";
-                    toolTip1.SetToolTip(linkAlready, $"If you have already supported in any way to\r\n{tool.Name}\r\nClick here to let me know, and\r\nthis popup will not appear again!");
+                    linkAlready.Text = $"I'm already\r\nsupporting.\r\nRegister here!";
+                    toolTip1.SetToolTip(linkAlready, $"If you have already supported\r\n{tool.Name}\r\nin any way - Click here to let me know,\r\nand this popup will not appear again!");
                     linkAlready.Tag = SupportType.Already;
                     break;
             }
@@ -246,12 +246,17 @@ namespace Rappen.XTB
             linkClose.LinkColor = settings.clrTxtFgDimmed;
         }
 
-        private void SettingAlready()
+        private void SettingSupportType(SupportType type)
         {
-            if (CallingWebForm(tool.GetUrlAlready()))
+            switch (type)
             {
-                tool.Support.Type = SupportType.Already;
-                DialogResult = DialogResult.Yes;
+                case SupportType.Already:
+                    if (CallingWebForm(tool.GetUrlAlready()))
+                    {
+                        tool.Support.Type = SupportType.Already;
+                        DialogResult = DialogResult.Yes;
+                    }
+                    break;
             }
         }
 
@@ -363,20 +368,13 @@ namespace Rappen.XTB
 
         private void linkAlready_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            var type = linkAlready.Tag as SupportType?;
-            switch (type)
+            if (linkAlready.Tag is SupportType type)
             {
-                case SupportType.Already:
-                    SettingAlready();
-                    break;
-
-                case SupportType.Never:
-                    MessageBoxEx.Show("You can change your mind right now or later.", "Supporting");
-                    break;
-
-                default:
-                    MessageBoxEx.Show("Thanks! ❤️", "Supporting");
-                    break;
+                SettingSupportType(type);
+            }
+            else
+            {
+                MessageBoxEx.Show("Thanks! ❤️", "Supporting");
             }
         }
 
@@ -457,7 +455,7 @@ namespace Rappen.XTB
 
         private void tsmiAlready_Click(object sender, EventArgs e)
         {
-            SettingAlready();
+            SettingSupportType(SupportType.Already);
         }
 
         private void tsmiNever_Click(object sender, EventArgs e)
