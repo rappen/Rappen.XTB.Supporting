@@ -11,14 +11,15 @@ In the project, add existing item **As link**:
 ..\Rappen.XTB.Supporting\Forms\Supporting.cs
 ```
 
-Now THIS is the place where the code is updated, if needed, and available too all tools.
+Now, THIS is the place where the code is updated, if needed, and available to all tools.
 
 ### Updating
 
-Update to latest version of this repository, use this command in the tool repo:
+Update to the latest version of this repository; use this command in the tool repo:
 ```
-git submopdule update
+git submodule update
 ```
+*Note that either pull or push happens in Visual Studio - VS Code handles them more...*
 
 ## Requirements
 
