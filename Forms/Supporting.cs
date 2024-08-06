@@ -45,7 +45,7 @@ namespace Rappen.XTB
                     {
                         var url = tool.GetUrlGeneral();
                         appinsights?.WriteEvent($"Supporting-{tool.Acronym}-General");
-                        Process.Start(url);
+                        UrlUtils.OpenUrl(url);
                     }
                     return;
                 }
