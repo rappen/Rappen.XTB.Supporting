@@ -24,4 +24,5 @@
   <ShowMinutesAfterSubmitting>2880</ShowMinutesAfterSubmitting>
   <ShowAutoPercentChance>50</ShowAutoPercentChance>
   <ShowAutoRepeatTimes>10</ShowAutoRepeatTimes>
+  <ResetUnfinalizedSupportingAfterDays>7</ResetUnfinalizedSupportingAfterDays>
 </ToolSettings>
