@@ -47,7 +47,7 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.txtPersonalFirst = new System.Windows.Forms.TextBox();
             this.txtPersonalLast = new System.Windows.Forms.TextBox();
-            this.linkAlready = new System.Windows.Forms.LinkLabel();
+            this.linkStatus = new System.Windows.Forms.LinkLabel();
             this.rbPersonalContributing = new System.Windows.Forms.RadioButton();
             this.rbPersonalSupporting = new System.Windows.Forms.RadioButton();
             this.txtPersonalCountry = new System.Windows.Forms.TextBox();
@@ -61,6 +61,8 @@
             this.tsmiAlready = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmiNever = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmiReset = new System.Windows.Forms.ToolStripMenuItem();
             this.linkClose = new System.Windows.Forms.LinkLabel();
             this.panPersonal = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
@@ -286,23 +288,22 @@
             this.toolTip1.SetToolTip(this.txtPersonalLast, "Last Name");
             this.txtPersonalLast.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
-            // linkAlready
+            // linkStatus
             // 
-            this.linkAlready.ActiveLinkColor = System.Drawing.Color.DeepSkyBlue;
-            this.linkAlready.AutoSize = true;
-            this.linkAlready.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
-            this.linkAlready.LinkColor = System.Drawing.Color.Tan;
-            this.linkAlready.Location = new System.Drawing.Point(9, 344);
-            this.linkAlready.Name = "linkAlready";
-            this.linkAlready.Size = new System.Drawing.Size(82, 54);
-            this.linkAlready.TabIndex = 102;
-            this.linkAlready.TabStop = true;
-            this.linkAlready.Text = "I\'m already\r\nsupporting\r\n{tool}!";
-            this.toolTip1.SetToolTip(this.linkAlready, "I have already supported this tool in one way or another!");
-            this.linkAlready.Visible = false;
-            this.linkAlready.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkAlready_LinkClicked);
-            this.linkAlready.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
-            this.linkAlready.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
+            this.linkStatus.ActiveLinkColor = System.Drawing.Color.DeepSkyBlue;
+            this.linkStatus.AutoSize = true;
+            this.linkStatus.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
+            this.linkStatus.LinkColor = System.Drawing.Color.Tan;
+            this.linkStatus.Location = new System.Drawing.Point(9, 344);
+            this.linkStatus.Name = "linkStatus";
+            this.linkStatus.Size = new System.Drawing.Size(82, 54);
+            this.linkStatus.TabIndex = 102;
+            this.linkStatus.TabStop = true;
+            this.linkStatus.Text = "I\'m already\r\nsupporting\r\n{tool}!";
+            this.toolTip1.SetToolTip(this.linkStatus, "I have already supported this tool in one way or another!");
+            this.linkStatus.LinkClicked += new System.Windows.Forms.LinkLabelLinkClickedEventHandler(this.linkStatus_LinkClicked);
+            this.linkStatus.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
+            this.linkStatus.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
             // 
             // rbPersonalContributing
             // 
@@ -416,9 +417,11 @@
             this.tsmiLater,
             this.tsmiAlready,
             this.toolStripMenuItem1,
-            this.tsmiNever});
+            this.tsmiNever,
+            this.toolStripMenuItem2,
+            this.tsmiReset});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(250, 76);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(250, 104);
             // 
             // tsmiLater
             // 
@@ -445,6 +448,18 @@
             this.tsmiNever.Size = new System.Drawing.Size(249, 22);
             this.tsmiNever.Text = "I will never support this tool";
             this.tsmiNever.Click += new System.EventHandler(this.tsmiNever_Click);
+            // 
+            // toolStripMenuItem2
+            // 
+            this.toolStripMenuItem2.Name = "toolStripMenuItem2";
+            this.toolStripMenuItem2.Size = new System.Drawing.Size(246, 6);
+            // 
+            // tsmiReset
+            // 
+            this.tsmiReset.Name = "tsmiReset";
+            this.tsmiReset.Size = new System.Drawing.Size(249, 22);
+            this.tsmiReset.Text = "Reset all entered data";
+            this.tsmiReset.Click += new System.EventHandler(this.tsmiReset_Click);
             // 
             // linkClose
             // 
@@ -643,7 +658,7 @@
             this.panBgBlue.Controls.Add(this.lblHeader);
             this.panBgBlue.Controls.Add(this.label1);
             this.panBgBlue.Controls.Add(this.label2);
-            this.panBgBlue.Controls.Add(this.linkAlready);
+            this.panBgBlue.Controls.Add(this.linkStatus);
             this.panBgBlue.Controls.Add(this.btnInfo);
             this.panBgBlue.Controls.Add(this.linkClose);
             this.panBgBlue.Dock = System.Windows.Forms.DockStyle.Fill;
@@ -723,7 +738,7 @@
         private System.Windows.Forms.Label helpTitle;
         private System.Windows.Forms.Button btnWhatWhy;
         private System.Windows.Forms.Button btnInfoClose;
-        private System.Windows.Forms.LinkLabel linkAlready;
+        private System.Windows.Forms.LinkLabel linkStatus;
         private System.Windows.Forms.ImageList pics;
         private System.Windows.Forms.Panel panel3;
         private System.Windows.Forms.RadioButton rbPersonalContributing;
@@ -740,5 +755,7 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem1;
         private System.Windows.Forms.Button btnInfo;
         private System.Windows.Forms.LinkLabel linkClose;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
+        private System.Windows.Forms.ToolStripMenuItem tsmiReset;
     }
 }

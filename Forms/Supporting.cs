@@ -18,7 +18,7 @@ namespace Rappen.XTB
 {
     public partial class Supporting : Form
     {
-        private static RappenXTB tools;
+        private static Installation installation;
         private static Tool tool;
         private static Supporters supporters;
         private static ToolSettings settings;
@@ -49,10 +49,8 @@ namespace Rappen.XTB
                     }
                     return;
                 }
-                if (reload || supporters == null)
-                {
-                    supporters = Supporters.DownloadMy(tools.InstallationId, toolname, supportabletool.ContributionCounts);
-                }
+                VerifySupporters(toolname, reload);
+                CheckUnSubmittedSupporters();
                 if (!manual)
                 {
                     if (supporters.Any(s => s.Type != SupportType.None && s.Type != SupportType.Never))
@@ -105,7 +103,7 @@ namespace Rappen.XTB
                     tool.Support.AutoDisplayDate = DateTime.Now;
                     tool.Support.AutoDisplayCount++;
                 }
-                tools.Save();
+                installation.Save();
             }
             catch (Exception ex)
             {
@@ -120,6 +118,35 @@ namespace Rappen.XTB
             return supportabletool?.Enabled == true;
         }
 
+        public static SupportType IsSupporting(PluginControlBase plugin)
+        {
+            var toolname = plugin?.ToolName;
+            VerifySettings(toolname);
+            VerifyTool(toolname);
+            VerifySupporters(toolname);
+            if (supporters.Any(s => s.Type == SupportType.Company))
+            {
+                return SupportType.Company;
+            }
+            if (supporters.Any(s => s.Type == SupportType.Personal))
+            {
+                return SupportType.Personal;
+            }
+            if (supporters.Any(s => s.Type == SupportType.Contribute))
+            {
+                return SupportType.Contribute;
+            }
+            if (supporters.Any(s => s.Type == SupportType.Already))
+            {
+                return SupportType.Already;
+            }
+            if (supporters.Any(s => s.Type == SupportType.Never))
+            {
+                return SupportType.Never;
+            }
+            return SupportType.None;
+        }
+
         private static void VerifySettings(string toolname, bool reload = false)
         {
             if (reload || settings == null || supportabletool == null)
@@ -132,17 +159,39 @@ namespace Rappen.XTB
 
         private static void VerifyTool(string toolname, bool reload = false)
         {
-            if (reload || tools == null || tool == null)
+            if (reload || installation == null || tool == null)
             {
-                tools = RappenXTB.Load(settings);
-                tool = tools[toolname];
+                supporters = null;
+                installation = Installation.Load(settings);
+                tool = installation[toolname];
                 var version = Assembly.GetExecutingAssembly().GetName().Version;
                 if (tool.version != version)
                 {
                     tool.version = version;
                     tool.VersionRunDate = DateTime.Now;
-                    tools.Save();
+                    installation.Save();
                 }
+            }
+        }
+
+        private static void VerifySupporters(string toolname, bool reload = false)
+        {
+            if (reload || supporters == null)
+            {
+                supporters = Supporters.DownloadMy(installation.Id, toolname, supportabletool.ContributionCounts);
+            }
+        }
+
+        private static void CheckUnSubmittedSupporters()
+        {
+            if (supporters != null &&
+                tool.Support.Type != SupportType.None &&
+                !supporters.Any(s => s.Type == tool.Support.Type) &&
+                tool.Support.SubmittedDate.AddDays(settings.ResetUnfinalizedSupportingAfterDays) < DateTime.Now)
+            {
+                tool.Support.Type = SupportType.None;
+                tool.Support.SubmittedDate = DateTime.MinValue;
+                installation.Save();
             }
         }
 
@@ -156,14 +205,23 @@ namespace Rappen.XTB
             lblHeader.Text = tool.Name;
             panInfo.Left = 32;
             panInfo.Top = 25;
-            txtCompanyName.Text = tools.CompanyName;
-            txtCompanyEmail.Text = tools.CompanyEmail;
+            SetStoredValues(manual);
+        }
+
+        #endregion Constructors
+
+        #region Private Methods
+
+        private void SetStoredValues(bool manual = false)
+        {
+            txtCompanyName.Text = installation.CompanyName;
+            txtCompanyEmail.Text = installation.CompanyEmail;
             cmbCompanyUsers.SelectedIndex = tool.Support.UsersIndex;
-            txtCompanyCountry.Text = tools.CompanyCountry;
-            txtPersonalFirst.Text = tools.PersonalFirstName;
-            txtPersonalLast.Text = tools.PersonalLastName;
-            txtPersonalEmail.Text = tools.PersonalEmail;
-            txtPersonalCountry.Text = tools.PersonalCountry;
+            txtCompanyCountry.Text = installation.CompanyCountry;
+            txtPersonalFirst.Text = installation.PersonalFirstName;
+            txtPersonalLast.Text = installation.PersonalLastName;
+            txtPersonalEmail.Text = installation.PersonalEmail;
+            txtPersonalCountry.Text = installation.PersonalCountry;
             if (tool.Support.Type == SupportType.Personal)
             {
                 rbPersonal.Checked = true;
@@ -180,49 +238,58 @@ namespace Rappen.XTB
             ResetAllColors();
         }
 
-        #endregion Constructors
-
-        #region Private Methods
-
         private void SetAlreadyLink()
         {
-            linkAlready.Tag = null;
+            linkStatus.Tag = null;
             var supporter = supporters.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Type != SupportType.None);
             switch (supporter?.Type)
             {
                 case SupportType.Company:
-                    linkAlready.Text = $"We're already\r\nsupporting\r\n{tool.Name}";
-                    toolTip1.SetToolTip(linkAlready, $"We know that your company is supporting\r\n{tool.Name}\r\nThank You!");
+                    linkStatus.Text = settings.StatusCompanyText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, settings.StatusCompanyTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Personal:
-                    linkAlready.Text = $"I'm already\r\nsupporting\r\n{tool.Name}";
-                    toolTip1.SetToolTip(linkAlready, $"We know that you are supporting\r\n{tool.Name}\r\nThank You!");
+                    linkStatus.Text = settings.StatusPersonalText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, settings.StatusPersonalTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Contribute:
-                    linkAlready.Text = $"I'm already\r\ncontributing to\r\n{tool.Name}";
-                    toolTip1.SetToolTip(linkAlready, $"We know that you are contributing to\r\n{tool.Name}\r\nThank You!");
+                    linkStatus.Text = settings.StatusContributeText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, settings.StatusContributeTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Already:
-                    linkAlready.Text = $"I have already\r\nsupported\r\n{tool.Name}";
-                    toolTip1.SetToolTip(linkAlready, $"We know that you have already supported\r\n{tool.Name}\r\nThank You!");
+                    linkStatus.Text = settings.StatusAlreadyText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, settings.StatusAlreadyTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Never:
-                    linkAlready.Text = $"I will never\r\nsupport\r\n{tool.Name}";
-                    toolTip1.SetToolTip(linkAlready, $"For some strange reason,\r\nyou will never support\r\n{tool.Name}\r\nThink again?");
-                    linkAlready.LinkArea = new LinkArea(0, 0);
+                    linkStatus.Text = settings.StatusNeverText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, settings.StatusNeverTip.Replace("{tool}", tool.Name));
+                    linkStatus.LinkArea = new LinkArea(0, 0);
                     break;
 
-                case null:
-                    linkAlready.Text = $"I'm already\r\nsupporting.\r\nRegister here!";
-                    toolTip1.SetToolTip(linkAlready, $"If you have already supported\r\n{tool.Name}\r\nin any way - Click here to let me know,\r\nand this popup will not appear again!");
-                    linkAlready.Tag = SupportType.Already;
+                default:
+                    switch (tool.Support.Type)
+                    {
+                        case SupportType.Company:
+                        case SupportType.Personal:
+                        case SupportType.Contribute:
+                        case SupportType.Already:
+                            linkStatus.Text = settings.StatusPendingText.Replace("{tool}", tool.Name);
+                            toolTip1.SetToolTip(linkStatus, settings.StatusPendingTip.Replace("{tool}", tool.Name));
+                            linkStatus.LinkArea = new LinkArea(0, 0);
+                            break;
+
+                        default:
+                            linkStatus.Text = settings.StatusDefaultText.Replace("{tool}", tool.Name);
+                            toolTip1.SetToolTip(linkStatus, settings.StatusDefaultTip.Replace("{tool}", tool.Name));
+                            linkStatus.Tag = SupportType.Already;
+                            break;
+                    }
                     break;
             }
-            linkAlready.Visible = true;
         }
 
         private void ResetAllColors()
@@ -242,7 +309,7 @@ namespace Rappen.XTB
             txtPersonalLast.BackColor = settings.clrFldBgNormal;
             txtPersonalEmail.BackColor = settings.clrFldBgNormal;
             txtPersonalCountry.BackColor = settings.clrFldBgNormal;
-            linkAlready.ForeColor = settings.clrTxtFgDimmed;
+            linkStatus.ForeColor = settings.clrTxtFgDimmed;
             linkClose.LinkColor = settings.clrTxtFgDimmed;
         }
 
@@ -313,22 +380,22 @@ namespace Rappen.XTB
         {
             if (sender == null || sender == txtCompanyName)
             {
-                tools.CompanyName = txtCompanyName.Text.Trim().Length >= 3 ? txtCompanyName.Text.Trim() : "";
-                txtCompanyName.BackColor = string.IsNullOrEmpty(tools.CompanyName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
+                installation.CompanyName = txtCompanyName.Text.Trim().Length >= 3 ? txtCompanyName.Text.Trim() : "";
+                txtCompanyName.BackColor = string.IsNullOrEmpty(installation.CompanyName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtCompanyEmail)
             {
                 try
                 {
-                    tools.CompanyEmail = new MailAddress(txtCompanyEmail.Text).Address.Trim();
+                    installation.CompanyEmail = new MailAddress(txtCompanyEmail.Text).Address.Trim();
                 }
                 catch { }
-                txtCompanyEmail.BackColor = string.IsNullOrEmpty(tools.CompanyEmail) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
+                txtCompanyEmail.BackColor = string.IsNullOrEmpty(installation.CompanyEmail) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtCompanyCountry)
             {
-                tools.CompanyCountry = txtCompanyCountry.Text.Trim().Length >= 2 ? txtCompanyCountry.Text.Trim() : "";
-                txtCompanyCountry.BackColor = string.IsNullOrEmpty(tools.CompanyCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
+                installation.CompanyCountry = txtCompanyCountry.Text.Trim().Length >= 2 ? txtCompanyCountry.Text.Trim() : "";
+                txtCompanyCountry.BackColor = string.IsNullOrEmpty(installation.CompanyCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == cmbCompanyUsers)
             {
@@ -337,27 +404,27 @@ namespace Rappen.XTB
             }
             if (sender == null || sender == txtPersonalFirst)
             {
-                tools.PersonalFirstName = txtPersonalFirst.Text.Trim().Length >= 1 ? txtPersonalFirst.Text.Trim() : "";
-                txtPersonalFirst.BackColor = string.IsNullOrEmpty(tools.PersonalFirstName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
+                installation.PersonalFirstName = txtPersonalFirst.Text.Trim().Length >= 1 ? txtPersonalFirst.Text.Trim() : "";
+                txtPersonalFirst.BackColor = string.IsNullOrEmpty(installation.PersonalFirstName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalLast)
             {
-                tools.PersonalLastName = txtPersonalLast.Text.Trim().Length >= 2 ? txtPersonalLast.Text.Trim() : "";
-                txtPersonalLast.BackColor = string.IsNullOrEmpty(tools.PersonalLastName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
+                installation.PersonalLastName = txtPersonalLast.Text.Trim().Length >= 2 ? txtPersonalLast.Text.Trim() : "";
+                txtPersonalLast.BackColor = string.IsNullOrEmpty(installation.PersonalLastName) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalEmail)
             {
                 try
                 {
-                    tools.PersonalEmail = new MailAddress(txtPersonalEmail.Text).Address.Trim();
+                    installation.PersonalEmail = new MailAddress(txtPersonalEmail.Text).Address.Trim();
                 }
                 catch { }
-                txtPersonalEmail.BackColor = string.IsNullOrEmpty(tools.PersonalEmail) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
+                txtPersonalEmail.BackColor = string.IsNullOrEmpty(installation.PersonalEmail) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalCountry)
             {
-                tools.PersonalCountry = txtPersonalCountry.Text.Trim().Length >= 2 ? txtPersonalCountry.Text.Trim() : "";
-                txtPersonalCountry.BackColor = string.IsNullOrEmpty(tools.PersonalCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
+                installation.PersonalCountry = txtPersonalCountry.Text.Trim().Length >= 2 ? txtPersonalCountry.Text.Trim() : "";
+                txtPersonalCountry.BackColor = string.IsNullOrEmpty(installation.PersonalCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
         }
 
@@ -366,9 +433,9 @@ namespace Rappen.XTB
             DialogResult = DialogResult.Retry;
         }
 
-        private void linkAlready_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
+        private void linkStatus_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
         {
-            if (linkAlready.Tag is SupportType type)
+            if (linkStatus.Tag is SupportType type)
             {
                 SettingSupportType(type);
             }
@@ -464,6 +531,18 @@ namespace Rappen.XTB
             DialogResult = DialogResult.Yes;
         }
 
+        private void tsmiReset_Click(object sender, EventArgs e)
+        {
+            if (MessageBoxEx.Show(this, "Reset will remove all locally stored data regarding supporting.\nAnything submitted to Jonas will not be removed. If that is needed, please contact me directly.\n\nConfirm reset with Yes/No.", "Supporting", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            {
+                var toolname = tool.Name;
+                installation.Remove();
+                VerifyTool(toolname, true);
+                installation.Save();
+                SetStoredValues();
+            }
+        }
+
         private void lbl_MouseEnter(object sender, EventArgs e)
         {
             if (sender is RadioButton rb)
@@ -514,7 +593,8 @@ namespace Rappen.XTB
         public int ShowMinutesAfterSupportingShown = int.MaxValue; // 2880m / 48h / 2d
         public int ShowMinutesAfterSubmitting = int.MaxValue; // 2880m / 48h / 2d
         public int ShowAutoPercentChance = 0;   // 25 (0-100)
-        public int ShowAutoRepeatTimes = 0; // 10
+        public int ShowAutoRepeatTimes = -1; // 10
+        public int ResetUnfinalizedSupportingAfterDays = int.MaxValue; // 7
 
         public string FormIdCorporate = "wpf17273";
         public string FormIdPersonal = "wpf17612";
@@ -593,25 +673,40 @@ After the form is submitted, Jonas will handle it soon.
 
 NOTE: It has to be submitted during the next step!";
 
+        public string StatusDefaultText = "Click here if\r\nYou are already\r\nsupporting!";
+        public string StatusDefaultTip = "If you have already supported\r\n{tool}\r\nin any way - Click here to let me know,\r\nand this popup will not appear again!";
+        public string StatusCompanyText = "Your company\r\nare supporting\r\n{tool}!";
+        public string StatusCompanyTip = "We know that your company is supporting\r\n{tool}\r\nThank You!";
+        public string StatusPersonalText = "You are\r\nsupporting\r\n{tool}!";
+        public string StatusPersonalTip = "We know that you are supporting\r\n{tool}\r\nThank You!";
+        public string StatusContributeText = "You are\r\ncontributing to\r\n{tool}!";
+        public string StatusContributeTip = "We know that you are contributing to\r\n{tool}\r\nThank You!";
+        public string StatusAlreadyText = "You have already\r\nsupported\r\n{tool}!";
+        public string StatusAlreadyTip = "We know that you have already supported\r\n{tool}\r\nThank You!";
+        public string StatusNeverText = "You will never\r\nsupport\r\n{tool}.";
+        public string StatusNeverTip = "For some strange reason,\r\nyou will never support\r\n{tool}\r\nThink again? 😉";
+        public string StatusPendingText = "You have recently\r\nsupported (if finalized).\r\nJonas is processing it...";
+        public string StatusPendingTip = "It may take hours/days to process the support...\r\nJonas will handle it after you have finalized the web form.\r\n\r\nThank You so much! ❤️";
+
         public string HelpWhyTitle = "Community Tools are Conscienceware.";
 
-        public string HelpWhyText = @"Some of us in the Power Platform Community are creating tools.
+        public string HelpWhyText = @"Some in the Power Platform Community are creating tools.
 Some contribute to the community with new ideas, find problems, write documentation, and even solve our bugs.
-Thousands and thousands in this community are mostly 'consumers'—only using open-source tools.
+Most in this community are mainly 'consumers' — they are only using open-source tools.
 To me, it's very similar to watching TV. Do you pay for channels, Netflix, Amazon Prime, Spotify, etc.?
-To be part of the community, but without the examples above, you can simply pay instead.
+To be part of the community, but without contributing, you can simply just pay instead.
 
 Especially when you work in a big corporation, exploiting free tools - only to increase your income - you have a responsibility to participate actively in the community - or pay.
 It's good to be able to sleep with a good conscience. Right?
 
 There should be a license called ""Conscienceware"".
-But technically, it is simply free to use them.
+But technically, it is simply free to use them. That's a fact.
 
 If you say you are not part of the community, that is incorrect—just using these tools makes you a part of it.
 
 You and your company can now more formally support tools rather than just donating via PayPal or 'Buy Me a Coffee.'
 
-Supporting is not just giving money; it means that you or your company know you have gained in time and improved your quality by using these tools. If you get something and want to give back—support the development and maintenance of the tools.
+Supporting is not just giving money; it means that you or your company know that you have gained in time and improved your quality by using these tools. If you get something and want to give back—support the development and maintenance of the tools.
 
 To read more about my thoughts, click here: https://jonasr.app/helping/
 
@@ -619,18 +714,18 @@ To read more about my thoughts, click here: https://jonasr.app/helping/
 
         public string HelpInfoTitle = "Technical Information";
 
-        public string HelpInfoText = @"Your entered name, company, country, email, and amount will not be stored in any system. The information will be saved in my personal Excel file. I do this to ensure you can get an invoice, and if so, we need to communicate if necessary.
+        public string HelpInfoText = @"Your entered name, company, country, email, and amount will not be stored in any system. The information will only be saved in my personal Excel file. I do this to ensure you can get an invoice, and if so, we need to communicate if necessary.
 The email you share with me, only to me, will never be sold to any company.
 
-You will receive an official receipt immediately and, if needed, an invoice. Supporting can be done with a credit card. Other options will be available depending on your location. Stripe handles the payment.
+You will receive an official receipt immediately and, if needed, an invoice. Supporting can be done with a credit card. Other options like Google Pay will be available depending on your location. Stripe handles the payment.
 
-When you click the big button here, the information you entered here will be included in the form on my website, jonasr.app, and a few hidden info: tool name, version, and your XrmToolBox 'InstallationId' (a random Guid generated the first time you use the toolbox). If you are curious, you can find your ID here: https://jonasr.app/xtb-finding-installationid.
+When you click the big button here, the information you entered here will be included in the form on my website, jonasr.app, and a few hidden info: tool name, version, and your XrmToolBox 'InstallationId' (a random Guid generated the first time you use the toolbox). If you are curious, you can see how to find your ID on this link: https://jonasr.app/xtb-finding-installationid.
 
-Since I would like to be very clear and transparent - we store your XrmToolBox InstallationId on a server to be able to know that you are supporting it in some way. There is nothing about the amount or contribution; I am not interested in hacking this info.
+Since I would like to be very clear and transparent - we store your XrmToolBox InstallationId on a server to be able to know that this installation is supporting it in some way. There is nothing about your name, the amount or contribution; I am not interested in hacking this info.
 
 The button in the top-right corner opens this info. You can also right-click on it and find more options, especially:
-* I have already supported this tool — use this to tell me that you already support this tool in some way so that this prompt will not ask you again.
-* I will never support this tool — use it if you think it is a bad idea, and you probably won't use it again; it won't ask you again.
+* I have already supported this tool — use this to tell me that you already support this tool in some way so that this popup prompt will not ask you again.
+* I will never support this tool — use it if you think it is a bad idea, and you probably won't use the tool again; it won't ask you again.
 
 For questions, contact me at https://jonasr.app/contact.";
 
@@ -698,25 +793,27 @@ For questions, contact me at https://jonasr.app/contact.";
         public override string ToString() => $"{InstallationId} {Type} {ToolName} {Date}";
     }
 
-    public class RappenXTB
+    public class Installation
     {
-        private int settingversion = -1;
+        private const string FileName = "Rappen.XTB.xml";
+        private int settingsversion = -1;
         internal ToolSettings toolsettings;
 
         public int SettingsVersion
         {
-            get => settingversion;
+            get => settingsversion;
             set
             {
-                if (settingversion != -1 && value != settingversion && Tools?.Count() > 0)
+                if (settingsversion != -1 && value != settingsversion && Tools?.Count() > 0)
                 {
                     Tools.ForEach(s => s.Support.AutoDisplayCount = 0);
                 }
-                settingversion = value;
+                settingsversion = value;
             }
         }
 
-        public Guid InstallationId = Guid.Empty;
+        public Guid Id = Guid.Empty;
+        public DateTime FirstRunDate = DateTime.Now;
         public string CompanyName;
         public string CompanyEmail;
         public string CompanyCountry;
@@ -726,31 +823,36 @@ For questions, contact me at https://jonasr.app/contact.";
         public string PersonalCountry;
         public List<Tool> Tools = new List<Tool>();
 
-        public static RappenXTB Load(ToolSettings settings)
+        public static Installation Load(ToolSettings settings)
         {
-            string path = Path.Combine(Paths.SettingsPath, "Rappen.XTB.Tools.xml");
-            var result = new RappenXTB();
+            string path = Path.Combine(Paths.SettingsPath, FileName);
+            var result = new Installation();
             if (File.Exists(path))
             {
                 try
                 {
                     XmlDocument xmlDocument = new XmlDocument();
                     xmlDocument.Load(path);
-                    result = (RappenXTB)XmlSerializerHelper.Deserialize(xmlDocument.OuterXml, typeof(RappenXTB));
+                    result = (Installation)XmlSerializerHelper.Deserialize(xmlDocument.OuterXml, typeof(Installation));
                 }
                 catch { }
             }
-            result.toolsettings = settings;
-            if (result.InstallationId.Equals(Guid.Empty))
-            {
-                result.InstallationId = InstallationInfo.Instance.InstallationId;
-            }
-            if (settings.SettingsVersion != result.settingversion)
-            {
-                result.SettingsVersion = settings.SettingsVersion;
-            }
-            result.Tools.ForEach(t => t.RappenXTB = result);
+            result.Initialize(settings);
+            result.Tools.ForEach(t => t.Installation = result);
             return result;
+        }
+
+        internal void Initialize(ToolSettings settings)
+        {
+            toolsettings = settings;
+            if (Id.Equals(Guid.Empty))
+            {
+                Id = InstallationInfo.Instance.InstallationId;
+            }
+            if (settings.SettingsVersion != settingsversion)
+            {
+                SettingsVersion = settings.SettingsVersion;
+            }
         }
 
         public void Save()
@@ -759,8 +861,17 @@ For questions, contact me at https://jonasr.app/contact.";
             {
                 Directory.CreateDirectory(Paths.SettingsPath);
             }
-            string path = Path.Combine(Paths.SettingsPath, "Rappen.XTB.Tools.xml");
+            var path = Path.Combine(Paths.SettingsPath, FileName);
             XmlSerializerHelper.SerializeToFile(this, path);
+        }
+
+        public void Remove()
+        {
+            var path = Path.Combine(Paths.SettingsPath, FileName);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
         }
 
         public Tool this[string name]
@@ -783,7 +894,7 @@ For questions, contact me at https://jonasr.app/contact.";
         private Version _version;
         private string name;
 
-        internal RappenXTB RappenXTB;
+        internal Installation Installation;
 
         internal Version version
         {
@@ -863,61 +974,61 @@ For questions, contact me at https://jonasr.app/contact.";
         private Tool()
         { }
 
-        internal Tool(RappenXTB rappen, string name)
+        internal Tool(Installation installation, string name)
         {
-            RappenXTB = rappen;
+            Installation = installation;
             Name = name;
         }
 
         public string GetUrlCorp()
         {
-            if (string.IsNullOrEmpty(RappenXTB.CompanyName) ||
-                string.IsNullOrEmpty(RappenXTB.CompanyEmail) ||
-                string.IsNullOrEmpty(RappenXTB.CompanyCountry))
+            if (string.IsNullOrEmpty(Installation.CompanyName) ||
+                string.IsNullOrEmpty(Installation.CompanyEmail) ||
+                string.IsNullOrEmpty(Installation.CompanyCountry))
             {
                 return null;
             }
-            return GenerateUrl(RappenXTB.toolsettings.FormUrlCorporate, RappenXTB.toolsettings.FormIdCorporate);
+            return GenerateUrl(Installation.toolsettings.FormUrlCorporate, Installation.toolsettings.FormIdCorporate);
         }
 
         public string GetUrlPersonal(bool contribute)
         {
-            if (string.IsNullOrEmpty(RappenXTB.PersonalFirstName) ||
-                string.IsNullOrEmpty(RappenXTB.PersonalLastName) ||
-                string.IsNullOrEmpty(RappenXTB.PersonalEmail) ||
-                string.IsNullOrEmpty(RappenXTB.PersonalCountry))
+            if (string.IsNullOrEmpty(Installation.PersonalFirstName) ||
+                string.IsNullOrEmpty(Installation.PersonalLastName) ||
+                string.IsNullOrEmpty(Installation.PersonalEmail) ||
+                string.IsNullOrEmpty(Installation.PersonalCountry))
             {
                 return null;
             }
-            return GenerateUrl(contribute ? RappenXTB.toolsettings.FormUrlContribute : RappenXTB.toolsettings.FormUrlSupporting, contribute ? RappenXTB.toolsettings.FormIdContribute : RappenXTB.toolsettings.FormIdPersonal);
+            return GenerateUrl(contribute ? Installation.toolsettings.FormUrlContribute : Installation.toolsettings.FormUrlSupporting, contribute ? Installation.toolsettings.FormIdContribute : Installation.toolsettings.FormIdPersonal);
         }
 
         public string GetUrlAlready()
         {
-            return GenerateUrl(RappenXTB.toolsettings.FormUrlAlready, RappenXTB.toolsettings.FormIdAlready);
+            return GenerateUrl(Installation.toolsettings.FormUrlAlready, Installation.toolsettings.FormIdAlready);
         }
 
         public string GetUrlGeneral()
         {
-            return GenerateUrl(RappenXTB.toolsettings.FormUrlGeneral, RappenXTB.toolsettings.FormIdCorporate);
+            return GenerateUrl(Installation.toolsettings.FormUrlGeneral, Installation.toolsettings.FormIdCorporate);
         }
 
         private string GenerateUrl(string template, string form)
         {
             return template
                 .Replace("{formid}", form)
-                .Replace("{company}", RappenXTB.CompanyName)
-                .Replace("{invoiceemail}", RappenXTB.CompanyEmail)
-                .Replace("{companycountry}", RappenXTB.CompanyCountry)
+                .Replace("{company}", Installation.CompanyName)
+                .Replace("{invoiceemail}", Installation.CompanyEmail)
+                .Replace("{companycountry}", Installation.CompanyCountry)
                 .Replace("{amount}", Support.Amount)
                 .Replace("{size}", Support.UsersCount)
-                .Replace("{firstname}", RappenXTB.PersonalFirstName)
-                .Replace("{lastname}", RappenXTB.PersonalLastName)
-                .Replace("{email}", RappenXTB.PersonalEmail)
-                .Replace("{country}", RappenXTB.PersonalCountry)
+                .Replace("{firstname}", Installation.PersonalFirstName)
+                .Replace("{lastname}", Installation.PersonalLastName)
+                .Replace("{email}", Installation.PersonalEmail)
+                .Replace("{country}", Installation.PersonalCountry)
                 .Replace("{tool}", Name)
                 .Replace("{version}", version.ToString())
-                .Replace("{instid}", RappenXTB.InstallationId.ToString());
+                .Replace("{instid}", Installation.Id.ToString());
         }
 
         public override string ToString() => $"{Name} {version}";
