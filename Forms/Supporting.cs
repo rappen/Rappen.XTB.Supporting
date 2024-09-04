@@ -18,7 +18,7 @@ namespace Rappen.XTB
 {
     public partial class Supporting : Form
     {
-        internal static readonly Uri GeneralSettingsURL = new Uri("https://rappen.github.io/Rappen.XTB.Supporting/Config/");
+        internal static readonly Uri GeneralSettingsURL = new Uri("https://rappen.github.io/Tools/");
 
         private static Installation installation;
         private static Tool tool;
