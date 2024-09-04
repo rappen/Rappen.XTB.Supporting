@@ -18,6 +18,8 @@ namespace Rappen.XTB
 {
     public partial class Supporting : Form
     {
+        internal static readonly Uri GeneralSettingsURL = new Uri("https://rappen.github.io/Rappen.XTB.Supporting/Config/");
+
         private static Installation installation;
         private static Tool tool;
         private static Supporters supporters;
@@ -584,7 +586,6 @@ namespace Rappen.XTB
     public class ToolSettings
     {
         private const string FileName = "Rappen.XTB.Settings.xml";
-        private static readonly Uri ToolSettingsURLPath = new Uri("https://raw.githubusercontent.com/rappen/Rappen.XTB.Supporting/main/Config/");
 
         public int SettingsVersion = 1;
         public List<SupportableTool> SupportableTools = new List<SupportableTool>();
@@ -732,7 +733,7 @@ For questions, contact me at https://jonasr.app/contact.";
         private ToolSettings()
         { }
 
-        public static ToolSettings Get() => new Uri(ToolSettingsURLPath, FileName).DownloadXml<ToolSettings>() ?? new ToolSettings();
+        public static ToolSettings Get() => new Uri(Supporting.GeneralSettingsURL, FileName).DownloadXml<ToolSettings>() ?? new ToolSettings();
 
         public SupportableTool this[string name]
         {
@@ -768,11 +769,10 @@ For questions, contact me at https://jonasr.app/contact.";
     public class Supporters : List<Supporter>
     {
         private const string FileName = "Rappen.XTB.Supporters.xml";
-        private static readonly Uri SupportersURLPath = new Uri("https://raw.githubusercontent.com/rappen/Rappen.XTB.Supporting/main/Config/");
 
         public static Supporters DownloadMy(Guid InstallationId, string toolname, bool contributionCounts)
         {
-            var result = new Uri(SupportersURLPath, FileName).DownloadXml<Supporters>() ?? new Supporters();
+            var result = new Uri(Supporting.GeneralSettingsURL, FileName).DownloadXml<Supporters>() ?? new Supporters();
             result.Where(s =>
                 s.InstallationId != InstallationId ||
                 s.ToolName != toolname)
