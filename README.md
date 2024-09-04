@@ -1,7 +1,7 @@
 # Rappen.XTB.Supporting
 ## Help for XrmToolBox tool regarding supporting
 
-Best way to use it is to att this repo in the tool solution with cmd:
+The best way to use it is to att this repo in the tool solution with cmd:
 ```
 git submodule add https://github.com/rappen/Rappen.XTB.Supporting
 ```
@@ -26,4 +26,4 @@ git submodule update
 The project needs to have a submodule to `https://github.com/rappen/Rappen.XTB.Helper` and added the project `Rappen.XTB.Helper` in the solution, and added it in the references in the tool project.
 
 ## Configs
-There are several settings in the [Config](Config) folder.
+There are several settings in the **[Config](Config)** folder.
