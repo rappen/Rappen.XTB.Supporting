@@ -5,7 +5,7 @@
     <SupportableTool>
       <Name>FetchXML Builder</Name>
       <Enabled>true</Enabled>
-      <ShowAutomatically>true</ShowAutomatically>
+      <ShowAutomatically>false</ShowAutomatically>
     </SupportableTool>
     <SupportableTool>
       <Name>Plugin Trace Viewer</Name>
