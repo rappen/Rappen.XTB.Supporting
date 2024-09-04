@@ -2,7 +2,7 @@
 
 ## [Rappen.XTB.Settings.xml](Rappen.XTB.Settings.xml)
 
-Contains general settings and specific tool-related settings.
+Contains general settings and specific tool-related supporting settings.
 
 ## [Rappen.XTB.Supporters.xml](Rappen.XTB.Supporters.xml)
 It contains no identification but a guid about who has supported a tool, so it can stop asking you again.
