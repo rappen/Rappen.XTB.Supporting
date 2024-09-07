@@ -64,6 +64,7 @@
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmiReset = new System.Windows.Forms.ToolStripMenuItem();
             this.linkClose = new System.Windows.Forms.LinkLabel();
+            this.picBuyMeACoffee = new System.Windows.Forms.PictureBox();
             this.panPersonal = new System.Windows.Forms.Panel();
             this.label4 = new System.Windows.Forms.Label();
             this.panel3 = new System.Windows.Forms.Panel();
@@ -82,6 +83,7 @@
             this.panel1.SuspendLayout();
             this.panCorp.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picBuyMeACoffee)).BeginInit();
             this.panPersonal.SuspendLayout();
             this.panel3.SuspendLayout();
             this.panInfo.SuspendLayout();
@@ -479,6 +481,20 @@
             this.linkClose.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
             this.linkClose.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
             // 
+            // picBuyMeACoffee
+            // 
+            this.picBuyMeACoffee.Cursor = System.Windows.Forms.Cursors.Hand;
+            this.picBuyMeACoffee.Image = ((System.Drawing.Image)(resources.GetObject("picBuyMeACoffee.Image")));
+            this.picBuyMeACoffee.Location = new System.Drawing.Point(473, 51);
+            this.picBuyMeACoffee.Name = "picBuyMeACoffee";
+            this.picBuyMeACoffee.Size = new System.Drawing.Size(35, 40);
+            this.picBuyMeACoffee.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picBuyMeACoffee.TabIndex = 107;
+            this.picBuyMeACoffee.TabStop = false;
+            this.picBuyMeACoffee.Tag = "https://buymeacoffee.com/rappen";
+            this.toolTip1.SetToolTip(this.picBuyMeACoffee, "I can always enjoy a cup of coffee!");
+            this.picBuyMeACoffee.Click += new System.EventHandler(this.picBuyMeACoffee_Click);
+            // 
             // panPersonal
             // 
             this.panPersonal.Controls.Add(this.label4);
@@ -649,6 +665,7 @@
             // 
             this.panBgBlue.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(66)))), ((int)(((byte)(173)))));
             this.panBgBlue.Controls.Add(this.panInfo);
+            this.panBgBlue.Controls.Add(this.picBuyMeACoffee);
             this.panBgBlue.Controls.Add(this.btnWhatWhy);
             this.panBgBlue.Controls.Add(this.panPersonal);
             this.panBgBlue.Controls.Add(this.btnSubmit);
@@ -693,6 +710,7 @@
             this.panCorp.ResumeLayout(false);
             this.panCorp.PerformLayout();
             this.contextMenuStrip1.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.picBuyMeACoffee)).EndInit();
             this.panPersonal.ResumeLayout(false);
             this.panPersonal.PerformLayout();
             this.panel3.ResumeLayout(false);
@@ -757,5 +775,6 @@
         private System.Windows.Forms.LinkLabel linkClose;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem tsmiReset;
+        private System.Windows.Forms.PictureBox picBuyMeACoffee;
     }
 }

@@ -364,7 +364,7 @@ namespace Rappen.XTB
             {
                 linkClose.Focus();
                 sw.Stop();
-                appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Close", duration: sw.ElapsedMilliseconds);
+                appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Close-{DialogResult}", duration: sw.ElapsedMilliseconds);
             }
         }
 
@@ -577,6 +577,15 @@ namespace Rappen.XTB
             else if (sender is Label lbl)
             {
                 lbl.ForeColor = settings.clrTxtFgDimmed;
+            }
+        }
+
+        private void picBuyMeACoffee_Click(object sender, EventArgs e)
+        {
+            if (UrlUtils.OpenUrl(sender))
+            {
+                appinsights?.WriteEvent($"Supporting-{tool.Acronym}-BuyMeACoffee");
+                DialogResult = DialogResult.Retry;
             }
         }
 
