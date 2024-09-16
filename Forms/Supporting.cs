@@ -529,6 +529,7 @@ namespace Rappen.XTB
 
         private void tsmiNever_Click(object sender, EventArgs e)
         {
+            appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Never");
             tool.Support.Type = SupportType.Never;
             DialogResult = DialogResult.Yes;
         }
