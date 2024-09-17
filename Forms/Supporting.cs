@@ -320,22 +320,21 @@ namespace Rappen.XTB
             switch (type)
             {
                 case SupportType.Already:
-                    if (CallingWebForm(tool.GetUrlAlready()))
+                    if (CallingWebForm(tool.GetUrlAlready(), type))
                     {
-                        tool.Support.Type = SupportType.Already;
                         DialogResult = DialogResult.Yes;
                     }
                     break;
             }
         }
 
-        private bool CallingWebForm(string url)
+        private bool CallingWebForm(string url, SupportType type)
         {
             if (!string.IsNullOrEmpty(url))
             {
                 if (MessageBoxEx.Show(this, settings.ConfirmDirecting, "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Asterisk) == DialogResult.OK)
                 {
-                    tool.Support.Type = rbPersonal.Checked ? rbPersonalContributing.Checked ? SupportType.Contribute : SupportType.Personal : SupportType.Company;
+                    tool.Support.Type = type;
                     tool.Support.SubmittedDate = DateTime.Now;
                     appinsights?.WriteEvent($"Supporting-{tool.Acronym}-{tool.Support.Type}");
                     Process.Start(url);
@@ -371,8 +370,9 @@ namespace Rappen.XTB
         private void btnSubmit_Click(object sender, EventArgs e)
         {
             ctrl_Validating();
+            var type = rbPersonal.Checked ? rbPersonalContributing.Checked ? SupportType.Contribute : SupportType.Personal : SupportType.Company;
             var url = rbPersonal.Checked ? tool.GetUrlPersonal(rbPersonalContributing.Checked) : tool.GetUrlCorp();
-            if (CallingWebForm(url))
+            if (CallingWebForm(url, type))
             {
                 DialogResult = DialogResult.Yes;
             }
