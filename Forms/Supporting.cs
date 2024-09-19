@@ -94,10 +94,6 @@ namespace Rappen.XTB
                         return;
                     }
                 }
-                if (manual && tool?.Support?.Type == SupportType.Never)
-                {
-                    tool.Support.Type = SupportType.None;
-                }
                 appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Open-{(manual ? "Manual" : "Auto")}");
                 new Supporting(manual).ShowDialog(plugin);
                 if (!manual)
@@ -186,10 +182,11 @@ namespace Rappen.XTB
 
         private static void CheckUnSubmittedSupporters()
         {
-            if (supporters != null &&
-                tool.Support.Type != SupportType.None &&
-                !supporters.Any(s => s.Type == tool.Support.Type) &&
-                tool.Support.SubmittedDate.AddDays(settings.ResetUnfinalizedSupportingAfterDays) < DateTime.Now)
+            if (tool.Support.Type != SupportType.None &&
+                tool.Support.Type != SupportType.Never &&
+                tool.Support.SubmittedDate > DateTime.MinValue &&
+                tool.Support.SubmittedDate.AddDays(settings.ResetUnfinalizedSupportingAfterDays) < DateTime.Now &&
+                supporters?.Any(s => s.Type == tool.Support.Type) == false)
             {
                 tool.Support.Type = SupportType.None;
                 tool.Support.SubmittedDate = DateTime.MinValue;
@@ -243,7 +240,7 @@ namespace Rappen.XTB
         private void SetAlreadyLink()
         {
             linkStatus.Tag = null;
-            var supporter = supporters.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Type != SupportType.None);
+            var supporter = supporters?.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Type != SupportType.None);
             switch (supporter?.Type)
             {
                 case SupportType.Company:
@@ -281,6 +278,12 @@ namespace Rappen.XTB
                         case SupportType.Already:
                             linkStatus.Text = settings.StatusPendingText.Replace("{tool}", tool.Name);
                             toolTip1.SetToolTip(linkStatus, settings.StatusPendingTip.Replace("{tool}", tool.Name));
+                            linkStatus.LinkArea = new LinkArea(0, 0);
+                            break;
+
+                        case SupportType.Never:
+                            linkStatus.Text = settings.StatusNeverText.Replace("{tool}", tool.Name);
+                            toolTip1.SetToolTip(linkStatus, settings.StatusNeverTip.Replace("{tool}", tool.Name));
                             linkStatus.LinkArea = new LinkArea(0, 0);
                             break;
 
@@ -529,6 +532,14 @@ namespace Rappen.XTB
 
         private void tsmiNever_Click(object sender, EventArgs e)
         {
+            if (MessageBoxEx.Show(this, $"Are you really sure that you don't like {tool.Name}?", "Supporting", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) != DialogResult.Yes)
+            {
+                if (tool.Support.Type == SupportType.Never)
+                {
+                    tool.Support.Type = SupportType.None;
+                }
+                return;
+            }
             appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Never");
             tool.Support.Type = SupportType.Never;
             DialogResult = DialogResult.Yes;
@@ -536,14 +547,16 @@ namespace Rappen.XTB
 
         private void tsmiReset_Click(object sender, EventArgs e)
         {
-            if (MessageBoxEx.Show(this, "Reset will remove all locally stored data regarding supporting.\nAnything submitted to Jonas will not be removed. If that is needed, please contact me directly.\n\nConfirm reset with Yes/No.", "Supporting", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+            if (MessageBoxEx.Show(this, "Reset will remove all locally stored data regarding supporting.\nAnything submitted to Jonas will not be removed. If that is needed, please contact me directly.\n\nConfirm reset with Yes/No.", "Supporting", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
             {
-                var toolname = tool.Name;
-                installation.Remove();
-                VerifyTool(toolname, true);
-                installation.Save();
-                SetStoredValues();
+                return;
             }
+            var toolname = tool.Name;
+            installation.Remove();
+            VerifyTool(toolname, true);
+            VerifySupporters(toolname, true);
+            installation.Save();
+            SetStoredValues();
         }
 
         private void lbl_MouseEnter(object sender, EventArgs e)
