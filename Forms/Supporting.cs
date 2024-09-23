@@ -927,6 +927,10 @@ For questions, contact me at https://jonasr.app/contact.";
                 if (value != _version)
                 {
                     Support.AutoDisplayCount = 0;
+                    if (Support?.Type == SupportType.Never)
+                    {
+                        Support.Type = SupportType.None;
+                    }
                 }
                 _version = value;
             }
