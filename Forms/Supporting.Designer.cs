@@ -38,9 +38,9 @@
             this.rbPersonal = new System.Windows.Forms.RadioButton();
             this.rbCompany = new System.Windows.Forms.RadioButton();
             this.panCorp = new System.Windows.Forms.Panel();
+            this.chkCompanySendInvoice = new System.Windows.Forms.CheckBox();
             this.txtCompanyCountry = new System.Windows.Forms.TextBox();
             this.lblCountry = new System.Windows.Forms.Label();
-            this.cmbCompanyUsers = new System.Windows.Forms.ComboBox();
             this.lblSize = new System.Windows.Forms.Label();
             this.txtCompanyEmail = new System.Windows.Forms.TextBox();
             this.lblInvoiceemail = new System.Windows.Forms.Label();
@@ -174,9 +174,9 @@
             // 
             // panCorp
             // 
+            this.panCorp.Controls.Add(this.chkCompanySendInvoice);
             this.panCorp.Controls.Add(this.txtCompanyCountry);
             this.panCorp.Controls.Add(this.lblCountry);
-            this.panCorp.Controls.Add(this.cmbCompanyUsers);
             this.panCorp.Controls.Add(this.lblSize);
             this.panCorp.Controls.Add(this.txtCompanyEmail);
             this.panCorp.Controls.Add(this.lblInvoiceemail);
@@ -186,6 +186,17 @@
             this.panCorp.Name = "panCorp";
             this.panCorp.Size = new System.Drawing.Size(456, 148);
             this.panCorp.TabIndex = 2;
+            // 
+            // chkCompanySendInvoice
+            // 
+            this.chkCompanySendInvoice.AutoSize = true;
+            this.chkCompanySendInvoice.Location = new System.Drawing.Point(151, 111);
+            this.chkCompanySendInvoice.Name = "chkCompanySendInvoice";
+            this.chkCompanySendInvoice.Size = new System.Drawing.Size(198, 22);
+            this.chkCompanySendInvoice.TabIndex = 8;
+            this.chkCompanySendInvoice.Text = "Send me an official invoice";
+            this.chkCompanySendInvoice.UseVisualStyleBackColor = true;
+            this.chkCompanySendInvoice.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
             // txtCompanyCountry
             // 
@@ -208,35 +219,14 @@
             this.lblCountry.TabIndex = 7;
             this.lblCountry.Text = "Country";
             // 
-            // cmbCompanyUsers
-            // 
-            this.cmbCompanyUsers.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
-            this.cmbCompanyUsers.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
-            this.cmbCompanyUsers.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.cmbCompanyUsers.ForeColor = System.Drawing.Color.Yellow;
-            this.cmbCompanyUsers.FormattingEnabled = true;
-            this.cmbCompanyUsers.Items.AddRange(new object[] {
-            "",
-            "1",
-            "2-10",
-            "11-50",
-            "51-100",
-            "101+"});
-            this.cmbCompanyUsers.Location = new System.Drawing.Point(148, 109);
-            this.cmbCompanyUsers.Name = "cmbCompanyUsers";
-            this.cmbCompanyUsers.Size = new System.Drawing.Size(292, 26);
-            this.cmbCompanyUsers.TabIndex = 4;
-            this.toolTip1.SetToolTip(this.cmbCompanyUsers, "How many at your company are using this tool?");
-            this.cmbCompanyUsers.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
-            // 
             // lblSize
             // 
             this.lblSize.AutoSize = true;
             this.lblSize.Location = new System.Drawing.Point(16, 112);
             this.lblSize.Name = "lblSize";
-            this.lblSize.Size = new System.Drawing.Size(73, 18);
+            this.lblSize.Size = new System.Drawing.Size(51, 18);
             this.lblSize.TabIndex = 5;
-            this.lblSize.Text = "Tool Users";
+            this.lblSize.Text = "Invoice";
             // 
             // txtCompanyEmail
             // 
@@ -296,7 +286,7 @@
             this.linkStatus.AutoSize = true;
             this.linkStatus.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.linkStatus.LinkColor = System.Drawing.Color.Tan;
-            this.linkStatus.Location = new System.Drawing.Point(9, 344);
+            this.linkStatus.Location = new System.Drawing.Point(9, 334);
             this.linkStatus.Name = "linkStatus";
             this.linkStatus.Size = new System.Drawing.Size(82, 54);
             this.linkStatus.TabIndex = 102;
@@ -736,7 +726,6 @@
         private System.Windows.Forms.Panel panCorp;
         private System.Windows.Forms.TextBox txtCompanyEmail;
         private System.Windows.Forms.Label lblInvoiceemail;
-        private System.Windows.Forms.ComboBox cmbCompanyUsers;
         private System.Windows.Forms.Label lblSize;
         private System.Windows.Forms.TextBox txtCompanyCountry;
         private System.Windows.Forms.Label lblCountry;
@@ -776,5 +765,6 @@
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem2;
         private System.Windows.Forms.ToolStripMenuItem tsmiReset;
         private System.Windows.Forms.PictureBox picBuyMeACoffee;
+        private System.Windows.Forms.CheckBox chkCompanySendInvoice;
     }
 }

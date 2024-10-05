@@ -218,7 +218,7 @@ namespace Rappen.XTB
         {
             txtCompanyName.Text = installation.CompanyName;
             txtCompanyEmail.Text = installation.CompanyEmail;
-            cmbCompanyUsers.SelectedIndex = tool.Support.UsersIndex;
+            chkCompanySendInvoice.Checked = installation.SendInvoice;
             txtCompanyCountry.Text = installation.CompanyCountry;
             txtPersonalFirst.Text = installation.PersonalFirstName;
             txtPersonalLast.Text = installation.PersonalLastName;
@@ -306,7 +306,6 @@ namespace Rappen.XTB
             txtCompanyName.BackColor = settings.clrFldBgNormal;
             txtCompanyEmail.BackColor = settings.clrFldBgNormal;
             txtCompanyCountry.BackColor = settings.clrFldBgNormal;
-            cmbCompanyUsers.BackColor = settings.clrFldBgNormal;
             txtPersonalFirst.BackColor = settings.clrFldBgNormal;
             txtPersonalLast.BackColor = settings.clrFldBgNormal;
             txtPersonalEmail.BackColor = settings.clrFldBgNormal;
@@ -399,10 +398,9 @@ namespace Rappen.XTB
                 installation.CompanyCountry = txtCompanyCountry.Text.Trim().Length >= 2 ? txtCompanyCountry.Text.Trim() : "";
                 txtCompanyCountry.BackColor = string.IsNullOrEmpty(installation.CompanyCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
-            if (sender == null || sender == cmbCompanyUsers)
+            if (sender == null || sender == chkCompanySendInvoice)
             {
-                tool.Support.UsersIndex = cmbCompanyUsers.SelectedIndex;
-                tool.Support.UsersCount = cmbCompanyUsers.Text;
+                installation.SendInvoice = chkCompanySendInvoice.Checked;
             }
             if (sender == null || sender == txtPersonalFirst)
             {
@@ -619,9 +617,10 @@ namespace Rappen.XTB
             "&{formid}_3={companycountry}" +
             "&{formid}_4={invoiceemail}" +
             "&{formid}_13={tool}" +
-            "&{formid}_19={size}" +
-            "&{formid}_24={amount}" +
+            //"&{formid}_19={size}" +
+            //"&{formid}_24={amount}" +
             "&{formid}_27={company}" +
+            "&{formid}_37={sendinvoice}" +
             "&{formid}_31={tool}" +
             "&{formid}_32={version}" +
             "&{formid}_33={instid}";
@@ -696,7 +695,7 @@ NOTE: It has to be submitted during the next step!";
         public string StatusAlreadyTip = "We know that you have already supported\r\n{tool}\r\nThank You!";
         public string StatusNeverText = "You will never\r\nsupport\r\n{tool}.";
         public string StatusNeverTip = "For some strange reason,\r\nyou will never support\r\n{tool}\r\nThink again? 😉";
-        public string StatusPendingText = "You have recently\r\nsupported (if finalized).\r\nJonas is processing it...";
+        public string StatusPendingText = "You have recently\r\nsupported.\r\nJonas is processing it\r\n(if You finalized it).";
         public string StatusPendingTip = "It may take hours/days to process the support...\r\nJonas will handle it after you have finalized the web form.\r\n\r\nThank You so much! ❤️";
 
         public string HelpWhyTitle = "Community Tools are Conscienceware.";
@@ -827,6 +826,7 @@ For questions, contact me at https://jonasr.app/contact.";
         public string CompanyName;
         public string CompanyEmail;
         public string CompanyCountry;
+        public bool SendInvoice;
         public string PersonalFirstName;
         public string PersonalLastName;
         public string PersonalEmail;
@@ -1032,6 +1032,7 @@ For questions, contact me at https://jonasr.app/contact.";
                 .Replace("{companycountry}", Installation.CompanyCountry)
                 .Replace("{amount}", Support.Amount)
                 .Replace("{size}", Support.UsersCount)
+                .Replace("{sendinvoice}", Installation.SendInvoice ? "Send%20me%20an%20invoice" : "")
                 .Replace("{firstname}", Installation.PersonalFirstName)
                 .Replace("{lastname}", Installation.PersonalLastName)
                 .Replace("{email}", Installation.PersonalEmail)
