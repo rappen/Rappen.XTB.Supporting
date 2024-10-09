@@ -88,8 +88,8 @@ namespace Rappen.XTB
                     {   // Submitted too soon for JR to handle it
                         return;
                     }
-                    else if (settings.ShowAutoPercentChance < 1 ||
-                        settings.ShowAutoPercentChance <= random.Next(1, 100))
+                    else if (supportabletool.ShowAutoPercentChance < 1 ||
+                        supportabletool.ShowAutoPercentChance <= random.Next(1, 100))
                     {
                         return;
                     }
@@ -643,11 +643,11 @@ namespace Rappen.XTB
         public int ShowMinutesAfterToolNewVersion = int.MaxValue; // 120
         public int ShowMinutesAfterSupportingShown = int.MaxValue; // 2880m / 48h / 2d
         public int ShowMinutesAfterSubmitting = int.MaxValue; // 2880m / 48h / 2d
-        public int ShowAutoPercentChance = 0;   // 25 (0-100)
+        public int ShowAutoPercentChance = 0;   // Moved to each tool
         public int ShowAutoRepeatTimes = -1; // 10
         public int ResetUnfinalizedSupportingAfterDays = int.MaxValue; // 7
-        public bool BMACLinkPositionRandom = true;
-        public bool CloseLinkPositionRandom = true;
+        public bool BMACLinkPositionRandom = false;
+        public bool CloseLinkPositionRandom = false;
         public int CloseLinkLeftMin = 400;
         public int CloseLinkLeftMax = 470;
         public int CloseLinkTopMin = 330;
@@ -821,6 +821,7 @@ For questions, contact me at https://jonasr.app/contact.";
         public bool Enabled = false;
         public bool ShowAutomatically = false;
         public bool ContributionCounts = true;
+        public int ShowAutoPercentChance = 0;   // 25 (0-100)
     }
 
     public class Supporters : List<Supporter>
