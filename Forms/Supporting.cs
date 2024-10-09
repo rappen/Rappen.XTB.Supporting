@@ -204,12 +204,31 @@ namespace Rappen.XTB
             lblHeader.Text = tool.Name;
             panInfo.Left = 32;
             panInfo.Top = 25;
+            SetCloseLinkPosition();
             SetStoredValues(manual);
         }
 
         #endregion Constructors
 
         #region Private Methods
+
+        private void SetCloseLinkPosition()
+        {
+            if (settings?.CloseLinkPositionRandom != true)
+            {
+                return;
+            }
+            var left = random.Next(0, 100);
+            var top = random.Next(0, 100);
+            if (left < 40) left = settings.CloseLinkLeftMin;
+            else if (left > 60) left = settings.CloseLinkLeftMax;
+            else left = (settings.CloseLinkLeftMin + settings.CloseLinkLeftMax) / 2;
+            if (top < 40) top = settings.CloseLinkTopMin;
+            else if (top > 60) top = settings.CloseLinkTopMax;
+            else top = (settings.CloseLinkTopMin + settings.CloseLinkTopMax) / 2;
+            linkClose.Left = left;
+            linkClose.Top = top;
+        }
 
         private void SetStoredValues(bool manual = false)
         {
@@ -617,6 +636,11 @@ namespace Rappen.XTB
         public int ShowAutoPercentChance = 0;   // 25 (0-100)
         public int ShowAutoRepeatTimes = -1; // 10
         public int ResetUnfinalizedSupportingAfterDays = int.MaxValue; // 7
+        public bool CloseLinkPositionRandom = true;
+        public int CloseLinkLeftMin = 400;
+        public int CloseLinkLeftMax = 470;
+        public int CloseLinkTopMin = 330;
+        public int CloseLinkTopMax = 380;
 
         public string FormIdCorporate = "wpf17273";
         public string FormIdPersonal = "wpf17612";
