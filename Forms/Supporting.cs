@@ -204,7 +204,7 @@ namespace Rappen.XTB
             lblHeader.Text = tool.Name;
             panInfo.Left = 32;
             panInfo.Top = 25;
-            SetCloseLinkPosition();
+            SetRandomkPositions();
             SetStoredValues(manual);
         }
 
@@ -212,22 +212,32 @@ namespace Rappen.XTB
 
         #region Private Methods
 
-        private void SetCloseLinkPosition()
+        private void SetRandomkPositions()
         {
-            if (settings?.CloseLinkPositionRandom != true)
+            if (settings?.BMACLinkPositionRandom == true)
             {
-                return;
+                if (random.Next(100) < 50)
+                {
+                    picBuyMeACoffee.Left = btnWhatWhy.Left - 2;
+                }
+                else
+                {
+                    picBuyMeACoffee.Left = btnInfo.Left - 2;
+                }
             }
-            var left = random.Next(0, 100);
-            var top = random.Next(0, 100);
-            if (left < 40) left = settings.CloseLinkLeftMin;
-            else if (left > 60) left = settings.CloseLinkLeftMax;
-            else left = (settings.CloseLinkLeftMin + settings.CloseLinkLeftMax) / 2;
-            if (top < 40) top = settings.CloseLinkTopMin;
-            else if (top > 60) top = settings.CloseLinkTopMax;
-            else top = (settings.CloseLinkTopMin + settings.CloseLinkTopMax) / 2;
-            linkClose.Left = left;
-            linkClose.Top = top;
+            if (settings?.CloseLinkPositionRandom == true)
+            {
+                var left = random.Next(0, 100);
+                var top = random.Next(0, 100);
+                if (left < 40) left = settings.CloseLinkLeftMin;
+                else if (left > 60) left = settings.CloseLinkLeftMax;
+                else left = (settings.CloseLinkLeftMin + settings.CloseLinkLeftMax) / 2;
+                if (top < 40) top = settings.CloseLinkTopMin;
+                else if (top > 60) top = settings.CloseLinkTopMax;
+                else top = (settings.CloseLinkTopMin + settings.CloseLinkTopMax) / 2;
+                linkClose.Left = left;
+                linkClose.Top = top;
+            }
         }
 
         private void SetStoredValues(bool manual = false)
@@ -636,6 +646,7 @@ namespace Rappen.XTB
         public int ShowAutoPercentChance = 0;   // 25 (0-100)
         public int ShowAutoRepeatTimes = -1; // 10
         public int ResetUnfinalizedSupportingAfterDays = int.MaxValue; // 7
+        public bool BMACLinkPositionRandom = true;
         public bool CloseLinkPositionRandom = true;
         public int CloseLinkLeftMin = 400;
         public int CloseLinkLeftMax = 470;
