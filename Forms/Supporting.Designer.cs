@@ -80,6 +80,8 @@
             this.label2 = new System.Windows.Forms.Label();
             this.panBgYellow = new System.Windows.Forms.Panel();
             this.panBgBlue = new System.Windows.Forms.Panel();
+            this.tsmiShowInstallationId = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.panel1.SuspendLayout();
             this.panCorp.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
@@ -411,9 +413,11 @@
             this.toolStripMenuItem1,
             this.tsmiNever,
             this.toolStripMenuItem2,
+            this.tsmiShowInstallationId,
+            this.toolStripMenuItem3,
             this.tsmiReset});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(250, 104);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(250, 154);
             // 
             // tsmiLater
             // 
@@ -674,6 +678,18 @@
             this.panBgBlue.Size = new System.Drawing.Size(521, 418);
             this.panBgBlue.TabIndex = 0;
             // 
+            // tsmiShowInstallationId
+            // 
+            this.tsmiShowInstallationId.Name = "tsmiShowInstallationId";
+            this.tsmiShowInstallationId.Size = new System.Drawing.Size(249, 22);
+            this.tsmiShowInstallationId.Text = "Show Installation Id";
+            this.tsmiShowInstallationId.Click += new System.EventHandler(this.tsmiShowInstallationId_Click);
+            // 
+            // toolStripMenuItem3
+            // 
+            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(246, 6);
+            // 
             // Supporting
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 18F);
@@ -766,5 +782,7 @@
         private System.Windows.Forms.ToolStripMenuItem tsmiReset;
         private System.Windows.Forms.PictureBox picBuyMeACoffee;
         private System.Windows.Forms.CheckBox chkCompanySendInvoice;
+        private System.Windows.Forms.ToolStripMenuItem tsmiShowInstallationId;
+        private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
     }
 }

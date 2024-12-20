@@ -630,6 +630,11 @@ namespace Rappen.XTB
             }
         }
 
+        private void tsmiShowInstallationId_Click(object sender, EventArgs e)
+        {
+            MessageBoxEx.Show(this, $"Your XrmToolBox Installation Id is:\n{installation.Id}", "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
         #endregion Private Event Methods
     }
 
