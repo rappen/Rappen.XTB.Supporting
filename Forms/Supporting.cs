@@ -713,17 +713,17 @@ namespace Rappen.XTB
             "&{formid}_32={version}" +
             "&{formid}_33={instid}";
 
-        public string ColorBg = "FF0042AD";
-        public string ColorFieldBgNormal = "FF0063FF";
-        public string ColorFieldBgInvalid = "FFF06565";
-        public string ColorTextFgNormal = "FFFFFF00";
-        public string ColorTextFgDimmed = "FFD2B48C";
+        public string ColorBg = "FF0042AD";                     // FF0042AD Dark blue
+        public string ColorTextFgNormal = "FFFFFF00";           // FFFFFF00 Yellow
+        public string ColorTextFgDimmed = "FFD2B48C";           // FFD2B48C Dim yellow
+        public string ColorFieldBgNormal = "FF0063FF";          // FF0063FF Light blue
+        public string ColorFieldBgInvalid = "FFF06565";         // FFF06565 Dim red
 
-        public Color clrBackground => Color.FromArgb(int.Parse(ColorBg, System.Globalization.NumberStyles.HexNumber));
-        public Color clrTxtFgNormal => Color.FromArgb(int.Parse(ColorTextFgNormal, System.Globalization.NumberStyles.HexNumber));
-        public Color clrTxtFgDimmed => Color.FromArgb(int.Parse(ColorTextFgDimmed, System.Globalization.NumberStyles.HexNumber));
-        public Color clrFldBgNormal => Color.FromArgb(int.Parse(ColorFieldBgNormal, System.Globalization.NumberStyles.HexNumber));
-        public Color clrFldBgInvalid => Color.FromArgb(int.Parse(ColorFieldBgInvalid, System.Globalization.NumberStyles.HexNumber));
+        public Color clrBackground => GetColor(ColorBg, "FF0042AD");
+        public Color clrTxtFgNormal => GetColor(ColorTextFgNormal, "FFFFFF00");
+        public Color clrTxtFgDimmed => GetColor(ColorTextFgDimmed, "FFD2B48C");
+        public Color clrFldBgNormal => GetColor(ColorFieldBgNormal, "FF0063FF");
+        public Color clrFldBgInvalid => GetColor(ColorFieldBgInvalid, "FFF06565");
 
         public string ConfirmDirecting = @"You will now be redirected to the website form
 to finish Your flavor of support.
@@ -812,6 +812,20 @@ For questions, contact me at https://jonasr.app/contact.";
             }
             string path = Path.Combine(Paths.SettingsPath, FileName);
             XmlSerializerHelper.SerializeToFile(this, path);
+        }
+
+        private Color GetColor(string color, string defaultColor)
+        {
+            int intColor;
+            try
+            {
+                intColor = int.Parse(color, System.Globalization.NumberStyles.HexNumber);
+            }
+            catch
+            {
+                intColor = int.Parse(defaultColor, System.Globalization.NumberStyles.HexNumber);
+            }
+            return Color.FromArgb(intColor);
         }
     }
 
