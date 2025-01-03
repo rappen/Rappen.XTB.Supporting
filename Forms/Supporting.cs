@@ -250,6 +250,7 @@ namespace Rappen.XTB
             txtPersonalLast.Text = installation.PersonalLastName;
             txtPersonalEmail.Text = installation.PersonalEmail;
             txtPersonalCountry.Text = installation.PersonalCountry;
+            chkPersonalContactMe.Checked = installation.PersonalContactMe;
             if (tool.Support.Type == SupportType.Personal)
             {
                 rbPersonal.Checked = true;
@@ -331,10 +332,9 @@ namespace Rappen.XTB
             panBgBlue.BackColor = settings.clrBackground;
             panInfoBg.BackColor = settings.clrBackground;
             helpText.BackColor = settings.clrBackground;
-            rbCompany.ForeColor = rbPersonal.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbCompany.ForeColor = rbCompany.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             rbPersonal.ForeColor = rbPersonal.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
-            rbPersonalSupporting.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
-            rbPersonalContributing.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
+            rbContribute.ForeColor = rbContribute.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             txtCompanyName.BackColor = settings.clrFldBgNormal;
             txtCompanyEmail.BackColor = settings.clrFldBgNormal;
             txtCompanyCountry.BackColor = settings.clrFldBgNormal;
@@ -401,8 +401,10 @@ namespace Rappen.XTB
         private void btnSubmit_Click(object sender, EventArgs e)
         {
             ctrl_Validating();
-            var type = rbPersonal.Checked ? rbPersonalContributing.Checked ? SupportType.Contribute : SupportType.Personal : SupportType.Company;
-            var url = rbPersonal.Checked ? tool.GetUrlPersonal(rbPersonalContributing.Checked) : tool.GetUrlCorp();
+            var type = rbPersonal.Checked ? SupportType.Personal :
+                rbContribute.Checked ? SupportType.Contribute : SupportType.Company;
+            var url = rbPersonal.Checked ? tool.GetUrlPersonal(false) :
+                rbContribute.Checked ? tool.GetUrlPersonal(true) : tool.GetUrlCorp();
             if (CallingWebForm(url, type))
             {
                 DialogResult = DialogResult.Yes;
@@ -458,6 +460,10 @@ namespace Rappen.XTB
                 installation.PersonalCountry = txtPersonalCountry.Text.Trim().Length >= 2 ? txtPersonalCountry.Text.Trim() : "";
                 txtPersonalCountry.BackColor = string.IsNullOrEmpty(installation.PersonalCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
+            if (sender == null || sender == chkPersonalContactMe)
+            {
+                installation.PersonalContactMe = chkPersonalContactMe.Checked;
+            }
         }
 
         private void linkClose_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -480,21 +486,16 @@ namespace Rappen.XTB
         private void rbType_CheckedChanged(object sender, EventArgs e)
         {
             SuspendLayout();
-            rbCompany.ForeColor = rbPersonal.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbCompany.ForeColor = rbCompany.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             rbPersonal.ForeColor = rbPersonal.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
+            rbContribute.ForeColor = rbContribute.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             panPersonal.Left = panCorp.Left;
             panPersonal.Top = panCorp.Top;
-            panPersonal.Visible = rbPersonal.Checked;
+            lblPersonalIntro.Text = rbContribute.Checked ? "I will contribute with my experience and knowledge!" : "I will monetarily support this tool!";
+            panPersonal.Visible = rbPersonal.Checked || rbContribute.Checked;
             panCorp.Visible = !panPersonal.Visible;
-            btnSubmit.ImageIndex = rbPersonal.Checked ? rbPersonalContributing.Checked ? 2 : 1 : 0;
+            btnSubmit.ImageIndex = rbPersonal.Checked ? 1 : rbContribute.Checked ? 2 : 0;
             ResumeLayout();
-        }
-
-        private void rbPersonalMonetary_CheckedChanged(object sender, EventArgs e)
-        {
-            rbPersonalSupporting.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
-            rbPersonalContributing.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
-            btnSubmit.ImageIndex = rbPersonalContributing.Checked ? 2 : 1;
         }
 
         private void helpText_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -632,7 +633,7 @@ namespace Rappen.XTB
 
         private void tsmiShowInstallationId_Click(object sender, EventArgs e)
         {
-            MessageBoxEx.Show(this, $"Your XrmToolBox Installation Id is:\n{installation.Id}", "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxEx.Show(this, $"The XrmToolBox Installation Id is:\n{installation.Id}", "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         #endregion Private Event Methods
@@ -655,8 +656,8 @@ namespace Rappen.XTB
         public bool CloseLinkPositionRandom = false;
         public int CloseLinkLeftMin = 400;
         public int CloseLinkLeftMax = 470;
-        public int CloseLinkTopMin = 330;
-        public int CloseLinkTopMax = 380;
+        public int CloseLinkTopMin = 356;
+        public int CloseLinkTopMax = 404;
 
         public string FormIdCorporate = "wpf17273";
         public string FormIdPersonal = "wpf17612";
@@ -684,6 +685,7 @@ namespace Rappen.XTB
             "&{formid}_1_last={lastname}" +
             "&{formid}_3={country}" +
             "&{formid}_4={email}" +
+            "&{formid}_52={contactme}" +
             "&{formid}_13={tool}" +
             "&{formid}_31={tool}" +
             "&{formid}_32={version}" +
@@ -695,6 +697,7 @@ namespace Rappen.XTB
             "&{formid}_1_last={lastname}" +
             "&{formid}_3={country}" +
             "&{formid}_4={email}" +
+            "&{formid}_52={contactme}" +
             "&{formid}_13={tool}" +
             "&{formid}_31={tool}" +
             "&{formid}_32={version}" +
@@ -899,6 +902,7 @@ For questions, contact me at https://jonasr.app/contact.";
         public string PersonalLastName;
         public string PersonalEmail;
         public string PersonalCountry;
+        public bool PersonalContactMe;
         public List<Tool> Tools = new List<Tool>();
 
         public static Installation Load(ToolSettings settings)
@@ -1109,6 +1113,7 @@ For questions, contact me at https://jonasr.app/contact.";
                 .Replace("{lastname}", Installation.PersonalLastName)
                 .Replace("{email}", Installation.PersonalEmail)
                 .Replace("{country}", Installation.PersonalCountry)
+                .Replace("{contactme}", Installation.PersonalContactMe ? "Contact%20me%20after%20submitting%20this%20form!" : "")
                 .Replace("{tool}", Name)
                 .Replace("{version}", version.ToString())
                 .Replace("{instid}", Installation.Id.ToString());
