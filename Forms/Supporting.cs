@@ -270,6 +270,7 @@ namespace Rappen.XTB
         private void SetAlreadyLink()
         {
             linkStatus.Tag = null;
+            bool clickable = true;
             var supporter = supporters?.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Type != SupportType.None);
             switch (supporter?.Type)
             {
@@ -296,7 +297,7 @@ namespace Rappen.XTB
                 case SupportType.Never:
                     linkStatus.Text = settings.StatusNeverText.Replace("{tool}", tool.Name);
                     toolTip1.SetToolTip(linkStatus, settings.StatusNeverTip.Replace("{tool}", tool.Name));
-                    linkStatus.LinkArea = new LinkArea(0, 0);
+                    clickable = false;
                     break;
 
                 default:
@@ -308,13 +309,13 @@ namespace Rappen.XTB
                         case SupportType.Already:
                             linkStatus.Text = settings.StatusPendingText.Replace("{tool}", tool.Name);
                             toolTip1.SetToolTip(linkStatus, settings.StatusPendingTip.Replace("{tool}", tool.Name));
-                            linkStatus.LinkArea = new LinkArea(0, 0);
+                            clickable = false;
                             break;
 
                         case SupportType.Never:
                             linkStatus.Text = settings.StatusNeverText.Replace("{tool}", tool.Name);
                             toolTip1.SetToolTip(linkStatus, settings.StatusNeverTip.Replace("{tool}", tool.Name));
-                            linkStatus.LinkArea = new LinkArea(0, 0);
+                            clickable = false;
                             break;
 
                         default:
@@ -324,6 +325,14 @@ namespace Rappen.XTB
                             break;
                     }
                     break;
+            }
+            if (clickable)
+            {
+                linkStatus.LinkArea = new LinkArea(0, linkStatus.Text.Length - 1);
+            }
+            else
+            {
+                linkStatus.LinkArea = new LinkArea(0, 0);
             }
         }
 
