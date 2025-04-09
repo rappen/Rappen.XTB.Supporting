@@ -250,6 +250,7 @@ namespace Rappen.XTB
             txtPersonalLast.Text = installation.PersonalLastName;
             txtPersonalEmail.Text = installation.PersonalEmail;
             txtPersonalCountry.Text = installation.PersonalCountry;
+            chkPersonalContactMe.Checked = installation.PersonalContactMe;
             if (tool.Support.Type == SupportType.Personal)
             {
                 rbPersonal.Checked = true;
@@ -269,6 +270,7 @@ namespace Rappen.XTB
         private void SetAlreadyLink()
         {
             linkStatus.Tag = null;
+            bool clickable = true;
             var supporter = supporters?.OrderByDescending(s => s.Date).FirstOrDefault(s => s.Type != SupportType.None);
             switch (supporter?.Type)
             {
@@ -295,7 +297,7 @@ namespace Rappen.XTB
                 case SupportType.Never:
                     linkStatus.Text = settings.StatusNeverText.Replace("{tool}", tool.Name);
                     toolTip1.SetToolTip(linkStatus, settings.StatusNeverTip.Replace("{tool}", tool.Name));
-                    linkStatus.LinkArea = new LinkArea(0, 0);
+                    clickable = false;
                     break;
 
                 default:
@@ -307,13 +309,13 @@ namespace Rappen.XTB
                         case SupportType.Already:
                             linkStatus.Text = settings.StatusPendingText.Replace("{tool}", tool.Name);
                             toolTip1.SetToolTip(linkStatus, settings.StatusPendingTip.Replace("{tool}", tool.Name));
-                            linkStatus.LinkArea = new LinkArea(0, 0);
+                            clickable = false;
                             break;
 
                         case SupportType.Never:
                             linkStatus.Text = settings.StatusNeverText.Replace("{tool}", tool.Name);
                             toolTip1.SetToolTip(linkStatus, settings.StatusNeverTip.Replace("{tool}", tool.Name));
-                            linkStatus.LinkArea = new LinkArea(0, 0);
+                            clickable = false;
                             break;
 
                         default:
@@ -324,6 +326,14 @@ namespace Rappen.XTB
                     }
                     break;
             }
+            if (clickable)
+            {
+                linkStatus.LinkArea = new LinkArea(0, linkStatus.Text.Length - 1);
+            }
+            else
+            {
+                linkStatus.LinkArea = new LinkArea(0, 0);
+            }
         }
 
         private void ResetAllColors()
@@ -331,10 +341,9 @@ namespace Rappen.XTB
             panBgBlue.BackColor = settings.clrBackground;
             panInfoBg.BackColor = settings.clrBackground;
             helpText.BackColor = settings.clrBackground;
-            rbCompany.ForeColor = rbPersonal.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbCompany.ForeColor = rbCompany.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             rbPersonal.ForeColor = rbPersonal.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
-            rbPersonalSupporting.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
-            rbPersonalContributing.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
+            rbContribute.ForeColor = rbContribute.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             txtCompanyName.BackColor = settings.clrFldBgNormal;
             txtCompanyEmail.BackColor = settings.clrFldBgNormal;
             txtCompanyCountry.BackColor = settings.clrFldBgNormal;
@@ -401,8 +410,10 @@ namespace Rappen.XTB
         private void btnSubmit_Click(object sender, EventArgs e)
         {
             ctrl_Validating();
-            var type = rbPersonal.Checked ? rbPersonalContributing.Checked ? SupportType.Contribute : SupportType.Personal : SupportType.Company;
-            var url = rbPersonal.Checked ? tool.GetUrlPersonal(rbPersonalContributing.Checked) : tool.GetUrlCorp();
+            var type = rbPersonal.Checked ? SupportType.Personal :
+                rbContribute.Checked ? SupportType.Contribute : SupportType.Company;
+            var url = rbPersonal.Checked ? tool.GetUrlPersonal(false) :
+                rbContribute.Checked ? tool.GetUrlPersonal(true) : tool.GetUrlCorp();
             if (CallingWebForm(url, type))
             {
                 DialogResult = DialogResult.Yes;
@@ -458,6 +469,10 @@ namespace Rappen.XTB
                 installation.PersonalCountry = txtPersonalCountry.Text.Trim().Length >= 2 ? txtPersonalCountry.Text.Trim() : "";
                 txtPersonalCountry.BackColor = string.IsNullOrEmpty(installation.PersonalCountry) ? settings.clrFldBgInvalid : settings.clrFldBgNormal;
             }
+            if (sender == null || sender == chkPersonalContactMe)
+            {
+                installation.PersonalContactMe = chkPersonalContactMe.Checked;
+            }
         }
 
         private void linkClose_LinkClicked(object sender, LinkLabelLinkClickedEventArgs e)
@@ -480,21 +495,16 @@ namespace Rappen.XTB
         private void rbType_CheckedChanged(object sender, EventArgs e)
         {
             SuspendLayout();
-            rbCompany.ForeColor = rbPersonal.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
+            rbCompany.ForeColor = rbCompany.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             rbPersonal.ForeColor = rbPersonal.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
+            rbContribute.ForeColor = rbContribute.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
             panPersonal.Left = panCorp.Left;
             panPersonal.Top = panCorp.Top;
-            panPersonal.Visible = rbPersonal.Checked;
+            lblPersonalIntro.Text = rbContribute.Checked ? "I will contribute with my experience and knowledge!" : "I will monetarily support this tool!";
+            panPersonal.Visible = rbPersonal.Checked || rbContribute.Checked;
             panCorp.Visible = !panPersonal.Visible;
-            btnSubmit.ImageIndex = rbPersonal.Checked ? rbPersonalContributing.Checked ? 2 : 1 : 0;
+            btnSubmit.ImageIndex = rbPersonal.Checked ? 1 : rbContribute.Checked ? 2 : 0;
             ResumeLayout();
-        }
-
-        private void rbPersonalMonetary_CheckedChanged(object sender, EventArgs e)
-        {
-            rbPersonalSupporting.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgDimmed : settings.clrTxtFgNormal;
-            rbPersonalContributing.ForeColor = rbPersonalContributing.Checked ? settings.clrTxtFgNormal : settings.clrTxtFgDimmed;
-            btnSubmit.ImageIndex = rbPersonalContributing.Checked ? 2 : 1;
         }
 
         private void helpText_LinkClicked(object sender, LinkClickedEventArgs e)
@@ -632,7 +642,7 @@ namespace Rappen.XTB
 
         private void tsmiShowInstallationId_Click(object sender, EventArgs e)
         {
-            MessageBoxEx.Show(this, $"Your XrmToolBox Installation Id is:\n{installation.Id}", "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            MessageBoxEx.Show(this, $"The XrmToolBox Installation Id is:\n{installation.Id}", "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         #endregion Private Event Methods
@@ -655,8 +665,8 @@ namespace Rappen.XTB
         public bool CloseLinkPositionRandom = false;
         public int CloseLinkLeftMin = 400;
         public int CloseLinkLeftMax = 470;
-        public int CloseLinkTopMin = 330;
-        public int CloseLinkTopMax = 380;
+        public int CloseLinkTopMin = 356;
+        public int CloseLinkTopMax = 404;
 
         public string FormIdCorporate = "wpf17273";
         public string FormIdPersonal = "wpf17612";
@@ -684,6 +694,7 @@ namespace Rappen.XTB
             "&{formid}_1_last={lastname}" +
             "&{formid}_3={country}" +
             "&{formid}_4={email}" +
+            "&{formid}_52={contactme}" +
             "&{formid}_13={tool}" +
             "&{formid}_31={tool}" +
             "&{formid}_32={version}" +
@@ -695,6 +706,7 @@ namespace Rappen.XTB
             "&{formid}_1_last={lastname}" +
             "&{formid}_3={country}" +
             "&{formid}_4={email}" +
+            "&{formid}_52={contactme}" +
             "&{formid}_13={tool}" +
             "&{formid}_31={tool}" +
             "&{formid}_32={version}" +
@@ -718,17 +730,17 @@ namespace Rappen.XTB
             "&{formid}_32={version}" +
             "&{formid}_33={instid}";
 
-        public string ColorBg = "FF0042AD";
-        public string ColorFieldBgNormal = "FF0063FF";
-        public string ColorFieldBgInvalid = "FFF06565";
-        public string ColorTextFgNormal = "FFFFFF00";
-        public string ColorTextFgDimmed = "FFD2B48C";
+        public string ColorBg = "FF0042AD";                     // FF0042AD Dark blue
+        public string ColorTextFgNormal = "FFFFFF00";           // FFFFFF00 Yellow
+        public string ColorTextFgDimmed = "FFD2B48C";           // FFD2B48C Dim yellow
+        public string ColorFieldBgNormal = "FF0063FF";          // FF0063FF Light blue
+        public string ColorFieldBgInvalid = "FFF06565";         // FFF06565 Dim red
 
-        public Color clrBackground => Color.FromArgb(int.Parse(ColorBg, System.Globalization.NumberStyles.HexNumber));
-        public Color clrTxtFgNormal => Color.FromArgb(int.Parse(ColorTextFgNormal, System.Globalization.NumberStyles.HexNumber));
-        public Color clrTxtFgDimmed => Color.FromArgb(int.Parse(ColorTextFgDimmed, System.Globalization.NumberStyles.HexNumber));
-        public Color clrFldBgNormal => Color.FromArgb(int.Parse(ColorFieldBgNormal, System.Globalization.NumberStyles.HexNumber));
-        public Color clrFldBgInvalid => Color.FromArgb(int.Parse(ColorFieldBgInvalid, System.Globalization.NumberStyles.HexNumber));
+        public Color clrBackground => GetColor(ColorBg, "FF0042AD");
+        public Color clrTxtFgNormal => GetColor(ColorTextFgNormal, "FFFFFF00");
+        public Color clrTxtFgDimmed => GetColor(ColorTextFgDimmed, "FFD2B48C");
+        public Color clrFldBgNormal => GetColor(ColorFieldBgNormal, "FF0063FF");
+        public Color clrFldBgInvalid => GetColor(ColorFieldBgInvalid, "FFF06565");
 
         public string ConfirmDirecting = @"You will now be redirected to the website form
 to finish Your flavor of support.
@@ -818,6 +830,20 @@ For questions, contact me at https://jonasr.app/contact.";
             string path = Path.Combine(Paths.SettingsPath, FileName);
             XmlSerializerHelper.SerializeToFile(this, path);
         }
+
+        private Color GetColor(string color, string defaultColor)
+        {
+            int intColor;
+            try
+            {
+                intColor = int.Parse(color, System.Globalization.NumberStyles.HexNumber);
+            }
+            catch
+            {
+                intColor = int.Parse(defaultColor, System.Globalization.NumberStyles.HexNumber);
+            }
+            return Color.FromArgb(intColor);
+        }
     }
 
     public class SupportableTool
@@ -885,6 +911,7 @@ For questions, contact me at https://jonasr.app/contact.";
         public string PersonalLastName;
         public string PersonalEmail;
         public string PersonalCountry;
+        public bool PersonalContactMe;
         public List<Tool> Tools = new List<Tool>();
 
         public static Installation Load(ToolSettings settings)
@@ -1095,6 +1122,7 @@ For questions, contact me at https://jonasr.app/contact.";
                 .Replace("{lastname}", Installation.PersonalLastName)
                 .Replace("{email}", Installation.PersonalEmail)
                 .Replace("{country}", Installation.PersonalCountry)
+                .Replace("{contactme}", Installation.PersonalContactMe ? "Contact%20me%20after%20submitting%20this%20form!" : "")
                 .Replace("{tool}", Name)
                 .Replace("{version}", version.ToString())
                 .Replace("{instid}", Installation.Id.ToString());

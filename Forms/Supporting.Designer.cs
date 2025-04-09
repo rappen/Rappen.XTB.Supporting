@@ -35,9 +35,11 @@
             this.txtCompanyName = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
             this.panel1 = new System.Windows.Forms.Panel();
+            this.rbContribute = new System.Windows.Forms.RadioButton();
             this.rbPersonal = new System.Windows.Forms.RadioButton();
             this.rbCompany = new System.Windows.Forms.RadioButton();
             this.panCorp = new System.Windows.Forms.Panel();
+            this.lblCompanyIntro = new System.Windows.Forms.Label();
             this.chkCompanySendInvoice = new System.Windows.Forms.CheckBox();
             this.txtCompanyCountry = new System.Windows.Forms.TextBox();
             this.lblCountry = new System.Windows.Forms.Label();
@@ -48,8 +50,6 @@
             this.txtPersonalFirst = new System.Windows.Forms.TextBox();
             this.txtPersonalLast = new System.Windows.Forms.TextBox();
             this.linkStatus = new System.Windows.Forms.LinkLabel();
-            this.rbPersonalContributing = new System.Windows.Forms.RadioButton();
-            this.rbPersonalSupporting = new System.Windows.Forms.RadioButton();
             this.txtPersonalCountry = new System.Windows.Forms.TextBox();
             this.txtPersonalEmail = new System.Windows.Forms.TextBox();
             this.btnWhatWhy = new System.Windows.Forms.Button();
@@ -62,12 +62,15 @@
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmiNever = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem2 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsmiShowInstallationId = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.tsmiReset = new System.Windows.Forms.ToolStripMenuItem();
             this.linkClose = new System.Windows.Forms.LinkLabel();
             this.picBuyMeACoffee = new System.Windows.Forms.PictureBox();
             this.panPersonal = new System.Windows.Forms.Panel();
+            this.lblPersonalIntro = new System.Windows.Forms.Label();
+            this.chkPersonalContactMe = new System.Windows.Forms.CheckBox();
             this.label4 = new System.Windows.Forms.Label();
-            this.panel3 = new System.Windows.Forms.Panel();
             this.lblICountry = new System.Windows.Forms.Label();
             this.lblIEmail = new System.Windows.Forms.Label();
             this.lblIName = new System.Windows.Forms.Label();
@@ -80,14 +83,11 @@
             this.label2 = new System.Windows.Forms.Label();
             this.panBgYellow = new System.Windows.Forms.Panel();
             this.panBgBlue = new System.Windows.Forms.Panel();
-            this.tsmiShowInstallationId = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripMenuItem3 = new System.Windows.Forms.ToolStripSeparator();
             this.panel1.SuspendLayout();
             this.panCorp.SuspendLayout();
             this.contextMenuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.picBuyMeACoffee)).BeginInit();
             this.panPersonal.SuspendLayout();
-            this.panel3.SuspendLayout();
             this.panInfo.SuspendLayout();
             this.panInfoBg.SuspendLayout();
             this.panBgYellow.SuspendLayout();
@@ -108,7 +108,7 @@
             // lblCompany
             // 
             this.lblCompany.AutoSize = true;
-            this.lblCompany.Location = new System.Drawing.Point(16, 19);
+            this.lblCompany.Location = new System.Drawing.Point(16, 43);
             this.lblCompany.Name = "lblCompany";
             this.lblCompany.Size = new System.Drawing.Size(72, 18);
             this.lblCompany.TabIndex = 1;
@@ -118,7 +118,7 @@
             // 
             this.txtCompanyName.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
             this.txtCompanyName.ForeColor = System.Drawing.Color.Yellow;
-            this.txtCompanyName.Location = new System.Drawing.Point(148, 16);
+            this.txtCompanyName.Location = new System.Drawing.Point(148, 40);
             this.txtCompanyName.Name = "txtCompanyName";
             this.txtCompanyName.Size = new System.Drawing.Size(292, 25);
             this.txtCompanyName.TabIndex = 1;
@@ -136,6 +136,7 @@
             // 
             // panel1
             // 
+            this.panel1.Controls.Add(this.rbContribute);
             this.panel1.Controls.Add(this.rbPersonal);
             this.panel1.Controls.Add(this.rbCompany);
             this.panel1.Location = new System.Drawing.Point(169, 104);
@@ -143,11 +144,27 @@
             this.panel1.Size = new System.Drawing.Size(317, 26);
             this.panel1.TabIndex = 1;
             // 
+            // rbContribute
+            // 
+            this.rbContribute.AutoSize = true;
+            this.rbContribute.ForeColor = System.Drawing.Color.Tan;
+            this.rbContribute.Location = new System.Drawing.Point(198, 2);
+            this.rbContribute.Name = "rbContribute";
+            this.rbContribute.Size = new System.Drawing.Size(94, 22);
+            this.rbContribute.TabIndex = 2;
+            this.rbContribute.Text = "Contribute";
+            this.toolTip1.SetToolTip(this.rbContribute, "I want to support it with new ideas, bug reports,\r\ndocumentation, and maybe even " +
+        "send you pull request!");
+            this.rbContribute.UseVisualStyleBackColor = true;
+            this.rbContribute.CheckedChanged += new System.EventHandler(this.rbType_CheckedChanged);
+            this.rbContribute.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
+            this.rbContribute.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
+            // 
             // rbPersonal
             // 
             this.rbPersonal.AutoSize = true;
             this.rbPersonal.ForeColor = System.Drawing.Color.Tan;
-            this.rbPersonal.Location = new System.Drawing.Point(145, 2);
+            this.rbPersonal.Location = new System.Drawing.Point(110, 2);
             this.rbPersonal.Name = "rbPersonal";
             this.rbPersonal.Size = new System.Drawing.Size(82, 22);
             this.rbPersonal.TabIndex = 1;
@@ -168,7 +185,7 @@
             this.rbCompany.TabIndex = 0;
             this.rbCompany.TabStop = true;
             this.rbCompany.Text = "Corporate";
-            this.toolTip1.SetToolTip(this.rbCompany, "Our company wants to support the developers,");
+            this.toolTip1.SetToolTip(this.rbCompany, "Our company wants to support the developers!");
             this.rbCompany.UseVisualStyleBackColor = true;
             this.rbCompany.CheckedChanged += new System.EventHandler(this.rbType_CheckedChanged);
             this.rbCompany.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
@@ -176,6 +193,7 @@
             // 
             // panCorp
             // 
+            this.panCorp.Controls.Add(this.lblCompanyIntro);
             this.panCorp.Controls.Add(this.chkCompanySendInvoice);
             this.panCorp.Controls.Add(this.txtCompanyCountry);
             this.panCorp.Controls.Add(this.lblCountry);
@@ -186,17 +204,26 @@
             this.panCorp.Controls.Add(this.txtCompanyName);
             this.panCorp.Location = new System.Drawing.Point(30, 132);
             this.panCorp.Name = "panCorp";
-            this.panCorp.Size = new System.Drawing.Size(456, 148);
+            this.panCorp.Size = new System.Drawing.Size(456, 172);
             this.panCorp.TabIndex = 2;
+            // 
+            // lblCompanyIntro
+            // 
+            this.lblCompanyIntro.Location = new System.Drawing.Point(0, 8);
+            this.lblCompanyIntro.Name = "lblCompanyIntro";
+            this.lblCompanyIntro.Size = new System.Drawing.Size(456, 26);
+            this.lblCompanyIntro.TabIndex = 9;
+            this.lblCompanyIntro.Text = "Our company will monetarily support this tool!";
+            this.lblCompanyIntro.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
             // 
             // chkCompanySendInvoice
             // 
             this.chkCompanySendInvoice.AutoSize = true;
-            this.chkCompanySendInvoice.Location = new System.Drawing.Point(151, 111);
+            this.chkCompanySendInvoice.Location = new System.Drawing.Point(151, 135);
             this.chkCompanySendInvoice.Name = "chkCompanySendInvoice";
-            this.chkCompanySendInvoice.Size = new System.Drawing.Size(198, 22);
+            this.chkCompanySendInvoice.Size = new System.Drawing.Size(152, 22);
             this.chkCompanySendInvoice.TabIndex = 8;
-            this.chkCompanySendInvoice.Text = "Send me an official invoice";
+            this.chkCompanySendInvoice.Text = "Send me an invoice";
             this.chkCompanySendInvoice.UseVisualStyleBackColor = true;
             this.chkCompanySendInvoice.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
@@ -204,7 +231,7 @@
             // 
             this.txtCompanyCountry.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
             this.txtCompanyCountry.ForeColor = System.Drawing.Color.Yellow;
-            this.txtCompanyCountry.Location = new System.Drawing.Point(148, 78);
+            this.txtCompanyCountry.Location = new System.Drawing.Point(148, 102);
             this.txtCompanyCountry.Name = "txtCompanyCountry";
             this.txtCompanyCountry.Size = new System.Drawing.Size(292, 25);
             this.txtCompanyCountry.TabIndex = 3;
@@ -215,7 +242,7 @@
             // lblCountry
             // 
             this.lblCountry.AutoSize = true;
-            this.lblCountry.Location = new System.Drawing.Point(16, 81);
+            this.lblCountry.Location = new System.Drawing.Point(16, 105);
             this.lblCountry.Name = "lblCountry";
             this.lblCountry.Size = new System.Drawing.Size(59, 18);
             this.lblCountry.TabIndex = 7;
@@ -224,7 +251,7 @@
             // lblSize
             // 
             this.lblSize.AutoSize = true;
-            this.lblSize.Location = new System.Drawing.Point(16, 112);
+            this.lblSize.Location = new System.Drawing.Point(16, 136);
             this.lblSize.Name = "lblSize";
             this.lblSize.Size = new System.Drawing.Size(51, 18);
             this.lblSize.TabIndex = 5;
@@ -234,7 +261,7 @@
             // 
             this.txtCompanyEmail.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
             this.txtCompanyEmail.ForeColor = System.Drawing.Color.Yellow;
-            this.txtCompanyEmail.Location = new System.Drawing.Point(148, 47);
+            this.txtCompanyEmail.Location = new System.Drawing.Point(148, 71);
             this.txtCompanyEmail.Name = "txtCompanyEmail";
             this.txtCompanyEmail.Size = new System.Drawing.Size(292, 25);
             this.txtCompanyEmail.TabIndex = 2;
@@ -244,7 +271,7 @@
             // lblInvoiceemail
             // 
             this.lblInvoiceemail.AutoSize = true;
-            this.lblInvoiceemail.Location = new System.Drawing.Point(16, 50);
+            this.lblInvoiceemail.Location = new System.Drawing.Point(16, 74);
             this.lblInvoiceemail.Name = "lblInvoiceemail";
             this.lblInvoiceemail.Size = new System.Drawing.Size(45, 18);
             this.lblInvoiceemail.TabIndex = 3;
@@ -264,7 +291,7 @@
             // 
             this.txtPersonalFirst.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
             this.txtPersonalFirst.ForeColor = System.Drawing.Color.Yellow;
-            this.txtPersonalFirst.Location = new System.Drawing.Point(148, 16);
+            this.txtPersonalFirst.Location = new System.Drawing.Point(148, 40);
             this.txtPersonalFirst.Name = "txtPersonalFirst";
             this.txtPersonalFirst.Size = new System.Drawing.Size(141, 25);
             this.txtPersonalFirst.TabIndex = 1;
@@ -275,7 +302,7 @@
             // 
             this.txtPersonalLast.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
             this.txtPersonalLast.ForeColor = System.Drawing.Color.Yellow;
-            this.txtPersonalLast.Location = new System.Drawing.Point(295, 16);
+            this.txtPersonalLast.Location = new System.Drawing.Point(295, 40);
             this.txtPersonalLast.Name = "txtPersonalLast";
             this.txtPersonalLast.Size = new System.Drawing.Size(145, 25);
             this.txtPersonalLast.TabIndex = 2;
@@ -288,7 +315,7 @@
             this.linkStatus.AutoSize = true;
             this.linkStatus.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.linkStatus.LinkColor = System.Drawing.Color.Tan;
-            this.linkStatus.Location = new System.Drawing.Point(9, 334);
+            this.linkStatus.Location = new System.Drawing.Point(9, 358);
             this.linkStatus.Name = "linkStatus";
             this.linkStatus.Size = new System.Drawing.Size(82, 54);
             this.linkStatus.TabIndex = 102;
@@ -299,42 +326,11 @@
             this.linkStatus.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
             this.linkStatus.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
             // 
-            // rbPersonalContributing
-            // 
-            this.rbPersonalContributing.AutoSize = true;
-            this.rbPersonalContributing.ForeColor = System.Drawing.Color.Tan;
-            this.rbPersonalContributing.Location = new System.Drawing.Point(145, 3);
-            this.rbPersonalContributing.Name = "rbPersonalContributing";
-            this.rbPersonalContributing.Size = new System.Drawing.Size(105, 22);
-            this.rbPersonalContributing.TabIndex = 1;
-            this.rbPersonalContributing.Text = "Contributing";
-            this.toolTip1.SetToolTip(this.rbPersonalContributing, "If you don\'t want to do any proper support, you can help Jonas\r\nwith development," +
-        " fixing bugs, having new ideas, documentation, etc.");
-            this.rbPersonalContributing.UseVisualStyleBackColor = true;
-            this.rbPersonalContributing.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
-            this.rbPersonalContributing.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
-            // 
-            // rbPersonalSupporting
-            // 
-            this.rbPersonalSupporting.AutoSize = true;
-            this.rbPersonalSupporting.Checked = true;
-            this.rbPersonalSupporting.Location = new System.Drawing.Point(12, 3);
-            this.rbPersonalSupporting.Name = "rbPersonalSupporting";
-            this.rbPersonalSupporting.Size = new System.Drawing.Size(96, 22);
-            this.rbPersonalSupporting.TabIndex = 0;
-            this.rbPersonalSupporting.TabStop = true;
-            this.rbPersonalSupporting.Text = "Supporting";
-            this.toolTip1.SetToolTip(this.rbPersonalSupporting, "Sharing is Caring ❤️\r\nHere, you can pay it forward!");
-            this.rbPersonalSupporting.UseVisualStyleBackColor = true;
-            this.rbPersonalSupporting.CheckedChanged += new System.EventHandler(this.rbPersonalMonetary_CheckedChanged);
-            this.rbPersonalSupporting.MouseEnter += new System.EventHandler(this.lbl_MouseEnter);
-            this.rbPersonalSupporting.MouseLeave += new System.EventHandler(this.lbl_MouseLeave);
-            // 
             // txtPersonalCountry
             // 
             this.txtPersonalCountry.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
             this.txtPersonalCountry.ForeColor = System.Drawing.Color.Yellow;
-            this.txtPersonalCountry.Location = new System.Drawing.Point(148, 78);
+            this.txtPersonalCountry.Location = new System.Drawing.Point(148, 102);
             this.txtPersonalCountry.Name = "txtPersonalCountry";
             this.txtPersonalCountry.Size = new System.Drawing.Size(292, 25);
             this.txtPersonalCountry.TabIndex = 4;
@@ -345,7 +341,7 @@
             // 
             this.txtPersonalEmail.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
             this.txtPersonalEmail.ForeColor = System.Drawing.Color.Yellow;
-            this.txtPersonalEmail.Location = new System.Drawing.Point(148, 47);
+            this.txtPersonalEmail.Location = new System.Drawing.Point(148, 71);
             this.txtPersonalEmail.Name = "txtPersonalEmail";
             this.txtPersonalEmail.Size = new System.Drawing.Size(292, 25);
             this.txtPersonalEmail.TabIndex = 3;
@@ -371,7 +367,7 @@
             this.btnSubmit.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.btnSubmit.ImageIndex = 0;
             this.btnSubmit.ImageList = this.pics;
-            this.btnSubmit.Location = new System.Drawing.Point(178, 330);
+            this.btnSubmit.Location = new System.Drawing.Point(178, 354);
             this.btnSubmit.Margin = new System.Windows.Forms.Padding(8);
             this.btnSubmit.Name = "btnSubmit";
             this.btnSubmit.Padding = new System.Windows.Forms.Padding(8);
@@ -417,7 +413,7 @@
             this.toolStripMenuItem3,
             this.tsmiReset});
             this.contextMenuStrip1.Name = "contextMenuStrip1";
-            this.contextMenuStrip1.Size = new System.Drawing.Size(250, 154);
+            this.contextMenuStrip1.Size = new System.Drawing.Size(250, 132);
             // 
             // tsmiLater
             // 
@@ -450,6 +446,18 @@
             this.toolStripMenuItem2.Name = "toolStripMenuItem2";
             this.toolStripMenuItem2.Size = new System.Drawing.Size(246, 6);
             // 
+            // tsmiShowInstallationId
+            // 
+            this.tsmiShowInstallationId.Name = "tsmiShowInstallationId";
+            this.tsmiShowInstallationId.Size = new System.Drawing.Size(249, 22);
+            this.tsmiShowInstallationId.Text = "Show Installation Id";
+            this.tsmiShowInstallationId.Click += new System.EventHandler(this.tsmiShowInstallationId_Click);
+            // 
+            // toolStripMenuItem3
+            // 
+            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
+            this.toolStripMenuItem3.Size = new System.Drawing.Size(246, 6);
+            // 
             // tsmiReset
             // 
             this.tsmiReset.Name = "tsmiReset";
@@ -464,7 +472,7 @@
             this.linkClose.AutoSize = true;
             this.linkClose.LinkBehavior = System.Windows.Forms.LinkBehavior.HoverUnderline;
             this.linkClose.LinkColor = System.Drawing.Color.Tan;
-            this.linkClose.Location = new System.Drawing.Point(463, 380);
+            this.linkClose.Location = new System.Drawing.Point(463, 404);
             this.linkClose.Name = "linkClose";
             this.linkClose.Size = new System.Drawing.Size(41, 18);
             this.linkClose.TabIndex = 106;
@@ -491,8 +499,9 @@
             // 
             // panPersonal
             // 
+            this.panPersonal.Controls.Add(this.lblPersonalIntro);
+            this.panPersonal.Controls.Add(this.chkPersonalContactMe);
             this.panPersonal.Controls.Add(this.label4);
-            this.panPersonal.Controls.Add(this.panel3);
             this.panPersonal.Controls.Add(this.txtPersonalLast);
             this.panPersonal.Controls.Add(this.txtPersonalCountry);
             this.panPersonal.Controls.Add(this.lblICountry);
@@ -502,32 +511,42 @@
             this.panPersonal.Controls.Add(this.txtPersonalFirst);
             this.panPersonal.Location = new System.Drawing.Point(30, 492);
             this.panPersonal.Name = "panPersonal";
-            this.panPersonal.Size = new System.Drawing.Size(456, 148);
+            this.panPersonal.Size = new System.Drawing.Size(456, 172);
             this.panPersonal.TabIndex = 3;
             this.panPersonal.Visible = false;
+            // 
+            // lblPersonalIntro
+            // 
+            this.lblPersonalIntro.Location = new System.Drawing.Point(0, 8);
+            this.lblPersonalIntro.Name = "lblPersonalIntro";
+            this.lblPersonalIntro.Size = new System.Drawing.Size(456, 26);
+            this.lblPersonalIntro.TabIndex = 11;
+            this.lblPersonalIntro.Text = "I will monetarily support this tool!";
+            this.lblPersonalIntro.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            // 
+            // chkPersonalContactMe
+            // 
+            this.chkPersonalContactMe.AutoSize = true;
+            this.chkPersonalContactMe.Location = new System.Drawing.Point(151, 135);
+            this.chkPersonalContactMe.Name = "chkPersonalContactMe";
+            this.chkPersonalContactMe.Size = new System.Drawing.Size(146, 22);
+            this.chkPersonalContactMe.TabIndex = 10;
+            this.chkPersonalContactMe.Text = "Please contact me";
+            this.chkPersonalContactMe.UseVisualStyleBackColor = true;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(16, 112);
+            this.label4.Location = new System.Drawing.Point(16, 136);
             this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(41, 18);
+            this.label4.Size = new System.Drawing.Size(83, 18);
             this.label4.TabIndex = 9;
-            this.label4.Text = "Type";
-            // 
-            // panel3
-            // 
-            this.panel3.Controls.Add(this.rbPersonalContributing);
-            this.panel3.Controls.Add(this.rbPersonalSupporting);
-            this.panel3.Location = new System.Drawing.Point(139, 107);
-            this.panel3.Name = "panel3";
-            this.panel3.Size = new System.Drawing.Size(301, 26);
-            this.panel3.TabIndex = 8;
+            this.label4.Text = "Contact me";
             // 
             // lblICountry
             // 
             this.lblICountry.AutoSize = true;
-            this.lblICountry.Location = new System.Drawing.Point(16, 81);
+            this.lblICountry.Location = new System.Drawing.Point(16, 105);
             this.lblICountry.Name = "lblICountry";
             this.lblICountry.Size = new System.Drawing.Size(59, 18);
             this.lblICountry.TabIndex = 7;
@@ -536,7 +555,7 @@
             // lblIEmail
             // 
             this.lblIEmail.AutoSize = true;
-            this.lblIEmail.Location = new System.Drawing.Point(16, 50);
+            this.lblIEmail.Location = new System.Drawing.Point(16, 74);
             this.lblIEmail.Name = "lblIEmail";
             this.lblIEmail.Size = new System.Drawing.Size(45, 18);
             this.lblIEmail.TabIndex = 3;
@@ -545,7 +564,7 @@
             // lblIName
             // 
             this.lblIName.AutoSize = true;
-            this.lblIName.Location = new System.Drawing.Point(16, 19);
+            this.lblIName.Location = new System.Drawing.Point(16, 43);
             this.lblIName.Name = "lblIName";
             this.lblIName.Size = new System.Drawing.Size(123, 18);
             this.lblIName.TabIndex = 1;
@@ -625,7 +644,7 @@
             // 
             this.label1.AutoSize = true;
             this.label1.Font = new System.Drawing.Font("Berlin Sans FB", 9.75F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(175, 283);
+            this.label1.Location = new System.Drawing.Point(175, 307);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(299, 30);
             this.label1.TabIndex = 103;
@@ -652,7 +671,7 @@
             this.panBgYellow.Location = new System.Drawing.Point(2, 2);
             this.panBgYellow.Name = "panBgYellow";
             this.panBgYellow.Padding = new System.Windows.Forms.Padding(4);
-            this.panBgYellow.Size = new System.Drawing.Size(529, 426);
+            this.panBgYellow.Size = new System.Drawing.Size(529, 446);
             this.panBgYellow.TabIndex = 105;
             // 
             // panBgBlue
@@ -675,27 +694,15 @@
             this.panBgBlue.Dock = System.Windows.Forms.DockStyle.Fill;
             this.panBgBlue.Location = new System.Drawing.Point(4, 4);
             this.panBgBlue.Name = "panBgBlue";
-            this.panBgBlue.Size = new System.Drawing.Size(521, 418);
+            this.panBgBlue.Size = new System.Drawing.Size(521, 438);
             this.panBgBlue.TabIndex = 0;
-            // 
-            // tsmiShowInstallationId
-            // 
-            this.tsmiShowInstallationId.Name = "tsmiShowInstallationId";
-            this.tsmiShowInstallationId.Size = new System.Drawing.Size(249, 22);
-            this.tsmiShowInstallationId.Text = "Show Installation Id";
-            this.tsmiShowInstallationId.Click += new System.EventHandler(this.tsmiShowInstallationId_Click);
-            // 
-            // toolStripMenuItem3
-            // 
-            this.toolStripMenuItem3.Name = "toolStripMenuItem3";
-            this.toolStripMenuItem3.Size = new System.Drawing.Size(246, 6);
             // 
             // Supporting
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 18F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(99)))), ((int)(((byte)(255)))));
-            this.ClientSize = new System.Drawing.Size(533, 430);
+            this.ClientSize = new System.Drawing.Size(533, 450);
             this.ControlBox = false;
             this.Controls.Add(this.panBgYellow);
             this.Font = new System.Drawing.Font("Berlin Sans FB", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -719,8 +726,6 @@
             ((System.ComponentModel.ISupportInitialize)(this.picBuyMeACoffee)).EndInit();
             this.panPersonal.ResumeLayout(false);
             this.panPersonal.PerformLayout();
-            this.panel3.ResumeLayout(false);
-            this.panel3.PerformLayout();
             this.panInfo.ResumeLayout(false);
             this.panInfoBg.ResumeLayout(false);
             this.panBgYellow.ResumeLayout(false);
@@ -763,9 +768,6 @@
         private System.Windows.Forms.Button btnInfoClose;
         private System.Windows.Forms.LinkLabel linkStatus;
         private System.Windows.Forms.ImageList pics;
-        private System.Windows.Forms.Panel panel3;
-        private System.Windows.Forms.RadioButton rbPersonalContributing;
-        private System.Windows.Forms.RadioButton rbPersonalSupporting;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
         private System.Windows.Forms.ToolStripMenuItem tsmiLater;
@@ -784,5 +786,9 @@
         private System.Windows.Forms.CheckBox chkCompanySendInvoice;
         private System.Windows.Forms.ToolStripMenuItem tsmiShowInstallationId;
         private System.Windows.Forms.ToolStripSeparator toolStripMenuItem3;
+        private System.Windows.Forms.RadioButton rbContribute;
+        private System.Windows.Forms.CheckBox chkPersonalContactMe;
+        private System.Windows.Forms.Label lblCompanyIntro;
+        private System.Windows.Forms.Label lblPersonalIntro;
     }
 }
