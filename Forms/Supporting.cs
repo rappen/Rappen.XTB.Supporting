@@ -777,8 +777,8 @@ To read more about my thoughts, click here: https://jonasr.app/helping/
 
         public string HelpInfoTitle = "Technical Information";
 
-        public string HelpInfoText = @"Your entered name, company, country, email, and amount will not be stored in any system. The information will only be saved in my personal Excel file. I do this to ensure you can get an invoice, and if so, we need to communicate if necessary.
-The email you share with me, only to me, will never be sold to any company.
+        public string HelpInfoText = @"Your entered name, company, country, email, and amount will not be stored in any official system. The information will only be saved in my personal Excel file and in my own Power Platform app, mostly for me, myself and I to learn even more about how the platform could help us. I also do this to ensure that you can get an invoice, and if needed we need to communicate by email.
+The email you share with me, only to me, will never be sold to any company. I won't try to sell anything. Period.
 
 You will receive an official receipt immediately and, if needed, an invoice. Supporting can be done with a credit card. Other options like Google Pay will be available depending on your location. Stripe handles the payment.
 
