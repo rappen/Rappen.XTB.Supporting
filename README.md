@@ -39,7 +39,7 @@ public static SupportType IsSupporting(PluginControlBase plugin)
 ### Example how to initialize Supporting
 It might be called in the MyTool_Load event:
 ```csharp
-Supporting.ShowIf(this, false, true, ai2);
+Supporting.ShowIf(this, false, true, ai);
 if (Supporting.IsEnabled(this))
 {
     tsbSupporting.Visible = true;
@@ -67,6 +67,22 @@ else
 
 ### Icons
 Icons for different types of supporting av available in folder [Images](https://github.com/rappen/Rappen.XTB.Supporting/tree/main/Images). I recommend that you add those as resources, as used in the example above.
+
+### Supporting menu button
+Supporting icon in the menu of the tool can be added as a `ToolStripButton`.
+For example above, set:
+```csharp
+Name = "tsbSupporting";
+Alignment = Right;
+DisplayStyle = Image;
+Image = global::MyTool.Properties.Resources.Supporting_icon;
+ImageScaling = None;
+Click += new System.EventHandler(this.tsbSupporting_Click);
+```
+In the click event on the button, call like this:
+```csharp
+Supporting.ShowIf(this, true, false, ai);
+```
 
 ## Requirements
 
