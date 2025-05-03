@@ -1,5 +1,6 @@
 # Rappen.XTB.Supporting
-## Help for XrmToolBox tool regarding supporting
+
+### Installing Supporting in XrmToolBox tool
 
 The best way to use it is to att this repo in the tool solution with cmd:
 ```
@@ -11,13 +12,21 @@ In the project, add existing item **As link**:
 ..\Rappen.XTB.Supporting\Forms\Supporting.cs
 ```
 
-#### Showng Supporting dialog
+### Updating
+
+Update to the latest version of this repository; use this command in the tool repo:
+```
+git submodule update
+```
+*Note that either pull or push happens in Visual Studio - VS Code handles them more...*
+
+### Showing Supporting dialog
 The Supporting may be show by calling this static method, depending on parameters and random check:
 ```csharp
 public static void ShowIf(PluginControlBase plugin, bool manual, bool reload, AppInsights appins)
 ```
 
-#### Showing current status by tool/user
+### Getting current status by tool/user
 It can be checked if this tool is enabled for Supporting by calling:
 ```csharp
 public static bool IsEnabled(PluginControlBase plugin)
@@ -27,7 +36,7 @@ We can check if this tool is supported in this installation, and if so, by which
 public static SupportType IsSupporting(PluginControlBase plugin)
 ```
 
-#### Example how to initialize Supporting
+### Example how to initialize Supporting
 It might be called in the MyTool_Load event:
 ```csharp
 Supporting.ShowIf(this, false, true, ai2);
@@ -56,16 +65,8 @@ else
 }
 ```
 
-#### Icons
+### Icons
 Icons for different types of supporting av available in folder [Images](https://github.com/rappen/Rappen.XTB.Supporting/tree/main/Images). I recommend that you add those as resources, as used in the example above.
-
-### Updating
-
-Update to the latest version of this repository; use this command in the tool repo:
-```
-git submodule update
-```
-*Note that either pull or push happens in Visual Studio - VS Code handles them more...*
 
 ## Requirements
 
