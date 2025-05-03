@@ -145,6 +145,10 @@ namespace Rappen.XTB
             return SupportType.None;
         }
 
+        #endregion Static Public Methods
+
+        #region Static Private Methods
+
         private static void VerifySettings(string toolname, bool reload = false)
         {
             if (reload || settings == null || supportabletool == null)
@@ -194,9 +198,9 @@ namespace Rappen.XTB
             }
         }
 
-        #endregion Static Public Methods
+        #endregion Static Private Methods
 
-        #region Constructors
+        #region Private Constructors
 
         private Supporting(bool manual)
         {
@@ -208,7 +212,7 @@ namespace Rappen.XTB
             SetStoredValues(manual);
         }
 
-        #endregion Constructors
+        #endregion Private Constructors
 
         #region Private Methods
 
