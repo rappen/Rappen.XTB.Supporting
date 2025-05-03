@@ -56,6 +56,9 @@ else
 }
 ```
 
+#### Icons
+Icons for different types of supporting av available in folder [Images](https://github.com/rappen/Rappen.XTB.Supporting/tree/main/Images). I recommend that you add those as resources, as used in the example above.
+
 ### Updating
 
 Update to the latest version of this repository; use this command in the tool repo:
