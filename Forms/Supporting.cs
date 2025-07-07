@@ -208,7 +208,7 @@ namespace Rappen.XTB
             lblHeader.Text = tool.Name;
             panInfo.Left = 32;
             panInfo.Top = 25;
-            SetRandomkPositions();
+            SetRandomPositions();
             SetStoredValues(manual);
         }
 
@@ -216,7 +216,7 @@ namespace Rappen.XTB
 
         #region Private Methods
 
-        private void SetRandomkPositions()
+        private void SetRandomPositions()
         {
             if (settings?.BMACLinkPositionRandom == true)
             {
@@ -233,14 +233,14 @@ namespace Rappen.XTB
             {
                 var left = random.Next(0, 100);
                 var top = random.Next(0, 100);
-                if (left < 40) left = settings.CloseLinkLeftMin;
-                else if (left > 60) left = settings.CloseLinkLeftMax;
-                else left = (settings.CloseLinkLeftMin + settings.CloseLinkLeftMax) / 2;
-                if (top < 40) top = settings.CloseLinkTopMin;
-                else if (top > 60) top = settings.CloseLinkTopMax;
-                else top = (settings.CloseLinkTopMin + settings.CloseLinkTopMax) / 2;
-                linkClose.Left = left;
-                linkClose.Top = top;
+                if (left < 40) left = settings.CloseLinkHorizFromOrigMin;
+                else if (left > 60) left = settings.CloseLinkHorizFromOrigMax;
+                else left = (settings.CloseLinkHorizFromOrigMin + settings.CloseLinkHorizFromOrigMax) / 2;
+                if (top < 40) top = settings.CloseLinkVertiFromOrigMin;
+                else if (top > 60) top = settings.CloseLinkVertiFromOrigMax;
+                else top = (settings.CloseLinkVertiFromOrigMin + settings.CloseLinkVertiFromOrigMax) / 2;
+                linkClose.Left += left;
+                linkClose.Top += top;
             }
         }
 
@@ -667,10 +667,10 @@ namespace Rappen.XTB
         public int ResetUnfinalizedSupportingAfterDays = int.MaxValue; // 7
         public bool BMACLinkPositionRandom = false;
         public bool CloseLinkPositionRandom = false;
-        public int CloseLinkLeftMin = 400;
-        public int CloseLinkLeftMax = 470;
-        public int CloseLinkTopMin = 356;
-        public int CloseLinkTopMax = 404;
+        public int CloseLinkHorizFromOrigMin = -90;
+        public int CloseLinkHorizFromOrigMax = 0;
+        public int CloseLinkVertiFromOrigMin = -50;
+        public int CloseLinkVertiFromOrigMax = 0;
 
         public string FormIdCorporate = "wpf17273";
         public string FormIdPersonal = "wpf17612";
