@@ -229,9 +229,9 @@
             this.chkCompanySendInvoice.AutoSize = true;
             this.chkCompanySendInvoice.Location = new System.Drawing.Point(151, 135);
             this.chkCompanySendInvoice.Name = "chkCompanySendInvoice";
-            this.chkCompanySendInvoice.Size = new System.Drawing.Size(152, 22);
+            this.chkCompanySendInvoice.Size = new System.Drawing.Size(233, 22);
             this.chkCompanySendInvoice.TabIndex = 8;
-            this.chkCompanySendInvoice.Text = "Send me an invoice";
+            this.chkCompanySendInvoice.Text = "Send an invoice after supported";
             this.chkCompanySendInvoice.UseVisualStyleBackColor = true;
             this.chkCompanySendInvoice.Validating += new System.ComponentModel.CancelEventHandler(this.ctrl_Validating);
             // 
