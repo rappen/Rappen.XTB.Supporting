@@ -116,6 +116,23 @@ namespace Rappen.XTB
             return supportabletool?.Enabled == true;
         }
 
+        public static bool IsPending(PluginControlBase plugin)
+        {
+            var toolname = plugin?.ToolName;
+            VerifySettings(toolname);
+            VerifyTool(toolname);
+            VerifySupporters(toolname);
+            if (tool.Support.Type == SupportType.None)
+                return false;
+            if (tool.Support.Type == SupportType.Never)
+                return false;
+            if (tool.Support.SubmittedDate == DateTime.MinValue)
+                return false;
+            if (tool.Support.SubmittedDate.AddMinutes(settings.ShowMinutesAfterSubmitting) < DateTime.Now)
+                return false;
+            return true;
+        }
+
         public static SupportType IsSupporting(PluginControlBase plugin)
         {
             var toolname = plugin?.ToolName;
@@ -143,6 +160,13 @@ namespace Rappen.XTB
                 return SupportType.Never;
             }
             return SupportType.None;
+        }
+
+        public static bool IsMonetarySupporting(PluginControlBase plugin)
+        {
+            var supporttype = IsSupporting(plugin);
+            return supporttype == SupportType.Company ||
+                   supporttype == SupportType.Personal;
         }
 
         #endregion Static Public Methods
