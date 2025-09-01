@@ -27,7 +27,6 @@ namespace Rappen.XTB
         private static SupportableTool supportabletool;
         private static Random random = new Random();
         private static AppInsights appinsights;
-
         private readonly Stopwatch sw = new Stopwatch();
         private readonly Stopwatch swInfo = new Stopwatch();
 
@@ -956,7 +955,10 @@ For questions, contact me at https://jonasr.app/contact.";
                 }
                 catch { }
             }
-            result.Initialize(settings);
+            if (settings != null)
+            {
+                result.Initialize(settings);
+            }
             result.Tools.ForEach(t => t.Installation = result);
             return result;
         }
