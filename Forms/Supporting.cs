@@ -1,110 +1,67 @@
-﻿using Rappen.XTB.Helpers;
+﻿using Microsoft.Toolkit.Uwp.Notifications;
+using Rappen.XTB.Helpers;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Mail;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Xml;
 using XrmToolBox.AppCode.AppInsights;
 using XrmToolBox.Extensibility;
-using XrmToolBox.ToolLibrary.AppCode;
 
 namespace Rappen.XTB
 {
     public partial class Supporting : Form
     {
-        internal static readonly Uri GeneralSettingsURL = new Uri("https://rappen.github.io/Tools/");
+        internal static readonly string GeneralSettingsURL = "https://rappen.github.io/Tools/";
 
         private static Installation installation;
         private static Tool tool;
         private static Supporters supporters;
         private static ToolSettings settings;
         private static SupportableTool supportabletool;
+        private static ToastableTool toastabletool;
         private static Random random = new Random();
         private static AppInsights appinsights;
+        private static bool isshowing;
         private readonly Stopwatch sw = new Stopwatch();
         private readonly Stopwatch swInfo = new Stopwatch();
+        private static Uri ToastLogo;
 
         #region Static Public Methods
 
-        public static void ShowIf(PluginControlBase plugin, bool manual, bool reload, AppInsights appins)
+        public static void ShowIf(PluginControlBase plugin, ShowItFrom from, bool manual, bool reload, AppInsights appins, SupportType? type = null, bool sync = false)
         {
-            var toolname = plugin?.ToolName;
-            appinsights = appins;
+            if (plugin == null) return;
+
+            if (sync)
+            {
+                ShowIfInternal(plugin, from, manual, reload, appins, type);
+                return;
+            }
             try
             {
-                VerifySettings(toolname, reload);
-                VerifyTool(toolname, reload);
-                if (supportabletool?.Enabled != true)
+                if (plugin.IsHandleCreated)
                 {
-                    if (manual)
-                    {
-                        var url = tool.GetUrlGeneral();
-                        appinsights?.WriteEvent($"Supporting-{tool.Acronym}-General");
-                        UrlUtils.OpenUrl(url);
-                    }
-                    return;
+                    plugin.BeginInvoke((Action)(() => ShowIfInternal(plugin, from, manual, reload, appins, type)));
                 }
-                VerifySupporters(toolname, reload);
-                CheckUnSubmittedSupporters();
-                if (!manual)
+                else
                 {
-                    if (supporters.Any(s => s.Type != SupportType.None && s.Type != SupportType.Never))
-                    {   // I have supportings!
-                        return;
-                    }
-                    else if (!supportabletool.ShowAutomatically)
-                    {   // Centerally stopping showing automatically
-                        return;
-                    }
-                    else if (tool.Support.Type == SupportType.Never)
-                    {   // You will never want to support this tool
-                        return;
-                    }
-                    else if (tool.FirstRunDate.AddMinutes(settings.ShowMinutesAfterToolInstall) > DateTime.Now)
-                    {   // Installed it too soon
-                        return;
-                    }
-                    else if (tool.VersionRunDate > tool.FirstRunDate &&
-                        tool.VersionRunDate.AddMinutes(settings.ShowMinutesAfterToolNewVersion) > DateTime.Now)
-                    {   // Installed this version too soon
-                        return;
-                    }
-                    else if (tool.Support.AutoDisplayDate.AddMinutes(settings.ShowMinutesAfterSupportingShown) > DateTime.Now)
-                    {   // Seen this form to soon
-                        return;
-                    }
-                    else if (tool.Support.AutoDisplayCount >= settings.ShowAutoRepeatTimes)
-                    {   // Seen this too many times
-                        return;
-                    }
-                    else if (tool.Support.SubmittedDate.AddMinutes(settings.ShowMinutesAfterSubmitting) > DateTime.Now)
-                    {   // Submitted too soon for JR to handle it
-                        return;
-                    }
-                    else if (supportabletool.ShowAutoPercentChance < 1 ||
-                        supportabletool.ShowAutoPercentChance <= random.Next(1, 100))
-                    {
-                        return;
-                    }
+                    plugin.HandleCreated += (s, e) =>
+                        plugin.BeginInvoke((Action)(() => ShowIfInternal(plugin, from, manual, reload, appins, type)));
                 }
-                appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Open-{(manual ? "Manual" : "Auto")}");
-                new Supporting(manual).ShowDialog(plugin);
-                if (!manual)
-                {
-                    tool.Support.AutoDisplayDate = DateTime.Now;
-                    tool.Support.AutoDisplayCount++;
-                }
-                installation.Save();
             }
             catch (Exception ex)
             {
-                plugin.LogError($"ToolSupporting error:\n{ex}");
+                // Best-effort logging; avoids surfacing exceptions from fire-and-forget
+                try { plugin.LogError($"Supporting.ShowIfFireAndForget failed:\n{ex}"); } catch { }
             }
         }
 
@@ -168,9 +125,210 @@ namespace Rappen.XTB
                    supporttype == SupportType.Personal;
         }
 
+        /// <summary>
+        /// Handles the activation of a toast notification and performs the appropriate action based on the provided
+        /// arguments.
+        /// </summary>
+        /// <remarks>It *must* have an method in your tools:
+        /// public override void HandleToastActivation(ToastNotificationActivatedEventArgsCompat args)
+        /// </remarks>
+        /// <param name="plugin">The plugin instance that provides context for the operation.</param>
+        /// <param name="args">The arguments associated with the toast notification activation.</param>
+        /// <param name="ai">The application insights instance used for telemetry and logging.</param>
+        /// <returns><see langword="true"/> if the toast activation was successfully handled and an action was performed;
+        /// otherwise, <see langword="false"/>.</returns>
+        public static bool HandleToastActivation(PluginControlBase plugin, ToastNotificationActivatedEventArgsCompat args, AppInsights ai)
+        {
+            var toastArgs = ToastArguments.Parse(args.Argument);
+            if (!toastArgs.TryGetValue("supporting", out var type) || string.IsNullOrWhiteSpace(type))
+            {
+                return false;
+            }
+            switch (type)
+            {
+                case "corporate":
+                    //ShowIf(plugin, ShowItFrom.ToastCall, true, false, ai, SupportType.Company);
+                    VerifySettings(plugin.ToolName);
+                    VerifyTool(plugin.ToolName);
+                    VerifySupporters(plugin.ToolName);
+                    OpenWebForm(tool.GetUrlCorp(false), SupportType.Company);
+                    return true;
+
+                case "personal":
+                    //ShowIf(plugin, ShowItFrom.ToastCall, true, false, ai, SupportType.Personal);
+                    //return true;
+                    VerifySettings(plugin.ToolName);
+                    VerifyTool(plugin.ToolName);
+                    VerifySupporters(plugin.ToolName);
+                    OpenWebForm(tool.GetUrlPersonal(false, false), SupportType.Personal);
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         #endregion Static Public Methods
 
         #region Static Private Methods
+
+        private static void ShowIfInternal(PluginControlBase plugin, ShowItFrom from, bool manual, bool reload, AppInsights appins, SupportType? type = null)
+        {
+            var toolname = plugin?.ToolName;
+            appinsights = appins;
+            try
+            {
+                VerifySettings(toolname, reload);
+                VerifyTool(toolname, reload);
+                if (from == ShowItFrom.Execute)
+                {
+                    tool.ExecuteCount++;
+                    _ = installation.SaveAsync();
+                }
+                if (supportabletool?.Enabled != true)
+                {
+                    if (manual)
+                    {
+                        var url = tool.GetUrlGeneral();
+                        appinsights?.WriteEvent($"Supporting-{tool.Acronym}-General");
+                        UrlUtils.OpenUrl(url);
+                    }
+                    return;
+                }
+                VerifySupporters(toolname, reload);
+                CheckUnSubmittedSupporters();
+                if (!manual && supporters.Any(s => s.Type != SupportType.None && s.Type != SupportType.Never))
+                {   // I am already supporting!
+                    return;
+                }
+                else if (tool.Support.Type == SupportType.Never)
+                {   // You will never want to support this tool
+                    return;
+                }
+                if (ShowIfPopup(plugin, from, manual, type))
+                {
+                    return;
+                }
+                if (ShowIfToast(plugin, from))
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                plugin.LogError($"ToolSupporting error:\n{ex}");
+            }
+        }
+
+        private static bool ShowIfPopup(PluginControlBase plugin, ShowItFrom from, bool manual, SupportType? type)
+        {
+            if (from == ShowItFrom.Execute)
+            {
+                return false;
+            }
+            if (!manual)
+            {
+                if (!supportabletool.ShowAutomatically)
+                {   // Centerally stopping showing automatically
+                    return false;
+                }
+                else if (tool.FirstRunDate.AddMinutes(settings.ShowMinutesAfterToolInstall) > DateTime.Now)
+                {   // Installed it too soon
+                    return false;
+                }
+                else if (tool.VersionRunDate > tool.FirstRunDate &&
+                    tool.VersionRunDate.AddMinutes(settings.ShowMinutesAfterToolNewVersion) > DateTime.Now)
+                {   // Installed this version too soon
+                    return false;
+                }
+                else if (tool.Support.AutoDisplayDate.AddMinutes(settings.ShowMinutesAfterSupportingShown) > DateTime.Now)
+                {   // Seen this form to soon
+                    return false;
+                }
+                else if (tool.Support.AutoDisplayCount >= settings.ShowAutoRepeatTimes)
+                {   // Seen this too many times
+                    return false;
+                }
+                else if (tool.Support.SubmittedDate.AddMinutes(settings.ShowMinutesAfterSubmitting) > DateTime.Now)
+                {   // Submitted too soon for JR to handle it
+                    return false;
+                }
+                else if (supportabletool.ShowAutoPercentChance < 1 ||
+                    supportabletool.ShowAutoPercentChance < random.Next(1, 31))
+                {
+                    return false;
+                }
+            }
+            if (isshowing)
+            {
+                return false;
+            }
+            isshowing = true;
+            appinsights?.WriteEvent($"Supporting-{tool.Acronym}-Open-{(manual ? "Manual" : "Auto")}");
+            new Supporting(manual, type).ShowDialog(plugin);
+            isshowing = false;
+            if (!manual)
+            {
+                tool.Support.AutoDisplayDate = DateTime.Now;
+                tool.Support.AutoDisplayCount++;
+            }
+            _ = installation.SaveAsync();
+            return false;
+        }
+
+        private static bool ShowIfToast(PluginControlBase plugin, ShowItFrom from)
+        {
+            if (toastabletool?.Enabled != true)
+            {
+                return false;
+            }
+            switch (from)
+            {
+                case ShowItFrom.Open:
+                    if (toastabletool.OpenPercentChance < random.Next(1, 101))
+                    {
+                        return false;
+                    }
+                    break;
+
+                case ShowItFrom.Execute:
+                    if (tool.ExecuteCount < toastabletool.ExecuteStart ||
+                        (toastabletool.ExecuteEnd > 0 && tool.ExecuteCount > toastabletool.ExecuteEnd) ||
+                        (tool.ExecuteCount - toastabletool.ExecuteStart) % toastabletool.ExecuteInterval != 0 ||
+                        toastabletool.ExecutePercentChance < random.Next(1, 101))
+                    {
+                        return false;
+                    }
+                    break;
+
+                default:
+                    return false;
+            }
+            try
+            {
+                VerifyLocalLogoUri(tool.Acronym);
+                var toast = new ToastContentBuilder()
+                    .AddArgument("PluginControlId", plugin.PluginControlId.ToString())
+                    .AddHeader(plugin.ToolName, settings.ToastHeader.Replace("{tool}", plugin.ToolName), InstallationInfo.Instance.InstallationId.ToString())
+                    .AddText(settings.ToastText.Replace("{tool}", plugin.ToolName))
+                    .AddAttributionText(settings.ToastAttrText.Replace("{tool}", plugin.ToolName))
+                    .AddAppLogoOverride(ToastLogo)
+                    .AddButton(new ToastButton()
+                        .SetContent(settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName))
+                        .AddArgument("supporting", "corporate")
+                        .SetBackgroundActivation())
+                    .AddButton(new ToastButton()
+                        .SetContent(settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName)))
+                        .AddArgument("supporting", "personal")
+                        .SetBackgroundActivation();
+                toast.Show();
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
+        }
 
         private static void VerifySettings(string toolname, bool reload = false)
         {
@@ -178,6 +336,7 @@ namespace Rappen.XTB
             {
                 settings = ToolSettings.Get();
                 supportabletool = settings[toolname];
+                toastabletool = settings.GetToastableTool(toolname);
                 //settings.Save();    // this is only to get a correct format of the tool settings file
             }
         }
@@ -194,7 +353,7 @@ namespace Rappen.XTB
                 {
                     tool.version = version;
                     tool.VersionRunDate = DateTime.Now;
-                    installation.Save();
+                    _ = installation.SaveAsync();
                 }
             }
         }
@@ -217,7 +376,44 @@ namespace Rappen.XTB
             {
                 tool.Support.Type = SupportType.None;
                 tool.Support.SubmittedDate = DateTime.MinValue;
-                installation.Save();
+                _ = installation.SaveAsync();
+            }
+        }
+
+        private static void OpenWebForm(string url, SupportType type)
+        {
+            tool.Support.Type = type;
+            tool.Support.SubmittedDate = DateTime.Now;
+            appinsights?.WriteEvent($"Supporting-{tool.Acronym}-{tool.Support.Type}");
+            Process.Start(url);
+        }
+
+        private static void VerifyLocalLogoUri(string acronym)
+        {
+            var remote = new Uri($"{GeneralSettingsURL}/Images/{acronym}150.png");
+            try
+            {
+                if (ToastLogo != null && File.Exists(ToastLogo.LocalPath))
+                {
+                    return;
+                }
+                var imagesFolder = Path.GetFullPath(Path.Combine(Paths.PluginsPath, $"Rappen.XTB.{acronym}"));
+                Directory.CreateDirectory(imagesFolder);
+                var localPath = Path.Combine(imagesFolder, $"ToastLogo.png");
+                var needsDownload = !File.Exists(localPath) || new FileInfo(localPath).Length == 0;
+                if (needsDownload)
+                {
+                    ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+                    using (var wc = new WebClient())
+                    {
+                        wc.DownloadFile(remote, localPath);
+                    }
+                }
+                ToastLogo = new Uri(localPath); // file:// URI -> most reliable for Win32 toasts
+            }
+            catch
+            {
+                ToastLogo = remote;
             }
         }
 
@@ -225,7 +421,7 @@ namespace Rappen.XTB
 
         #region Private Constructors
 
-        private Supporting(bool manual)
+        private Supporting(bool manual, SupportType? type)
         {
             InitializeComponent();
             lblHeader.Text = tool.Name;
@@ -233,6 +429,20 @@ namespace Rappen.XTB
             panInfo.Top = 25;
             SetRandomPositions();
             SetStoredValues(manual);
+            switch (type)
+            {
+                case SupportType.Company:
+                    rbCompany.Checked = true;
+                    break;
+
+                case SupportType.Personal:
+                    rbPersonal.Checked = true;
+                    break;
+
+                case SupportType.Contribute:
+                    rbContribute.Checked = true;
+                    break;
+            }
         }
 
         #endregion Private Constructors
@@ -399,12 +609,9 @@ namespace Rappen.XTB
         {
             if (!string.IsNullOrEmpty(url))
             {
-                if (MessageBoxEx.Show(this, settings.ConfirmDirecting, "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Asterisk) == DialogResult.OK)
+                //if (MessageBoxEx.Show(this, settings.ConfirmDirecting, "Supporting", MessageBoxButtons.OK, MessageBoxIcon.Asterisk) == DialogResult.OK)
                 {
-                    tool.Support.Type = type;
-                    tool.Support.SubmittedDate = DateTime.Now;
-                    appinsights?.WriteEvent($"Supporting-{tool.Acronym}-{tool.Support.Type}");
-                    Process.Start(url);
+                    OpenWebForm(url, type);
                     return true;
                 }
             }
@@ -609,7 +816,7 @@ namespace Rappen.XTB
             DialogResult = DialogResult.Yes;
         }
 
-        private void tsmiReset_Click(object sender, EventArgs e)
+        private async void tsmiReset_Click(object sender, EventArgs e)
         {
             if (MessageBoxEx.Show(this, "Reset will remove all locally stored data regarding supporting.\nAnything submitted to Jonas will not be removed. If that is needed, please contact me directly.\n\nConfirm reset with Yes/No.", "Supporting", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
             {
@@ -619,7 +826,7 @@ namespace Rappen.XTB
             installation.Remove();
             VerifyTool(toolname, true);
             VerifySupporters(toolname, true);
-            installation.Save();
+            await installation.SaveAsync();
             SetStoredValues();
         }
 
@@ -675,12 +882,15 @@ namespace Rappen.XTB
         #endregion Private Event Methods
     }
 
+    #region General settings for supporting stored in Rappen.XTB.Settings.xml
+
     public class ToolSettings
     {
-        private const string FileName = "Rappen.XTB.Settings.xml";
+        private const string SettingsFileName = "Rappen.XTB.Settings.xml";
 
         public int SettingsVersion = 1;
         public List<SupportableTool> SupportableTools = new List<SupportableTool>();
+        public List<ToastableTool> ToastableTools = new List<ToastableTool>();
         public int ShowMinutesAfterToolInstall = int.MaxValue;    // 60
         public int ShowMinutesAfterToolNewVersion = int.MaxValue; // 120
         public int ShowMinutesAfterSupportingShown = int.MaxValue; // 2880m / 48h / 2d
@@ -775,6 +985,12 @@ After the form is submitted, Jonas will handle it soon.
 
 NOTE: It has to be submitted during the next step!";
 
+        public string ToastHeader = "Support {tool} to keep it evolving!";
+        public string ToastText = "⏱️ Saving time.\n💰 Making money.\n☕ More coffee.";
+        public string ToastAttrText = "Be fast — pick a button below to be part of some legendary development!";
+        public string ToastButtonCorporate = "Corporate Support";
+        public string ToastButtonPersonal = "Personal Support";
+
         public string StatusDefaultText = "Click here if\r\nYou are already\r\nsupporting!";
         public string StatusDefaultTip = "If you have already supported\r\n{tool}\r\nin any way - Click here to let me know,\r\nand this popup will not appear again!";
         public string StatusCompanyText = "Your company\r\nare supporting\r\n{tool}!";
@@ -792,25 +1008,21 @@ NOTE: It has to be submitted during the next step!";
 
         public string HelpWhyTitle = "Community Tools are Conscienceware.";
 
-        public string HelpWhyText = @"Some in the Power Platform Community are creating tools.
-Some contribute to the community with new ideas, find problems, write documentation, and even solve our bugs.
-Most in this community are mainly 'consumers' — they are only using open-source tools.
-To me, it's very similar to watching TV. Do you pay for channels, Netflix, Amazon Prime, Spotify, etc.?
-To be part of the community, but without contributing, you can simply just pay instead.
+        public string HelpWhyText = @"Why Support the Tools You Use?
 
-Especially when you work in a big corporation, exploiting free tools - only to increase your income - you have a responsibility to participate actively in the community - or pay.
-It's good to be able to sleep with a good conscience. Right?
+In the Power Platform community, some people create tools, others share ideas, write documentation, and fix bugs. Most simply use these tools—and that’s perfectly fine!
 
-There should be a license called ""Conscienceware"".
-But technically, it is simply free to use them. That's a fact.
+But think about it: when you watch TV or stream music, you pay for Netflix, Amazon Prime, or Spotify. Why? Because you value what you get.
 
-If you say you are not part of the community, that is incorrect—just using these tools makes you a part of it.
+Open-source tools are free to use, but they’re not free to build or maintain. If you benefit from them—saving time, improving quality—consider giving back. Support isn’t just about money; it’s about acknowledging the value you’ve received.
 
-You and your company can now more formally support tools rather than just donating via PayPal or 'Buy Me a Coffee.'
+Especially if you work in a large corporation, using free tools to drive revenue, supporting the community is the right thing to do. It’s about fairness and sustainability.
 
-Supporting is not just giving money; it means that you or your company know that you have gained in time and improved your quality by using these tools. If you get something and want to give back—support the development and maintenance of the tools.
+You’re already part of the community by using these tools. Now you can support them formally—not just with a coffee donation, but in a way that helps development and maintenance.
 
-To read more about my thoughts, click here: https://jonasr.app/helping/
+Want to learn more? Read my thoughts here: https://jonasr.app/helping/
+
+Let’s make “Conscienceware” a reality.
 
 - Jonas Rapp";
 
@@ -831,10 +1043,10 @@ The button in the top-right corner opens this info. You can also right-click on 
 
 For questions, contact me at https://jonasr.app/contact.";
 
-        private ToolSettings()
+        public ToolSettings()
         { }
 
-        public static ToolSettings Get() => new Uri(Supporting.GeneralSettingsURL, FileName).DownloadXml<ToolSettings>() ?? new ToolSettings();
+        public static ToolSettings Get() => XmlAtomicStore.DownloadXml<ToolSettings>(Supporting.GeneralSettingsURL, SettingsFileName);
 
         public SupportableTool this[string name]
         {
@@ -848,15 +1060,16 @@ For questions, contact me at https://jonasr.app/contact.";
             }
         }
 
-        public void Save()
+        public ToastableTool GetToastableTool(string name)
         {
-            if (!Directory.Exists(Paths.SettingsPath))
+            if (!ToastableTools.Any(tt => tt.Name == name))
             {
-                Directory.CreateDirectory(Paths.SettingsPath);
+                ToastableTools.Add(new ToastableTool { Name = name });
             }
-            string path = Path.Combine(Paths.SettingsPath, FileName);
-            XmlSerializerHelper.SerializeToFile(this, path);
+            return ToastableTools.FirstOrDefault(tt => tt.Name == name);
         }
+
+        public void Save() => XmlAtomicStore.SerializeAsync(this, Path.Combine(Paths.SettingsPath, SettingsFileName));
 
         private Color GetColor(string color, string defaultColor)
         {
@@ -882,13 +1095,28 @@ For questions, contact me at https://jonasr.app/contact.";
         public int ShowAutoPercentChance = 0;   // 25 (0-100)
     }
 
+    public class ToastableTool
+    {
+        public string Name;
+        public bool Enabled = false;
+        public int ExecuteStart = 0;            // 40 - minimum executions before toast
+        public int ExecuteEnd = 0;              // 1000 - maximum executions to toast
+        public int ExecuteInterval = 0;         // 70 - every 70'th execution
+        public int ExecutePercentChance = 0;    // 5 % - random chance to toast when execute
+        public int OpenPercentChance = 0;       // 20 % - random chance to toast when opening the tool
+    }
+
+    #endregion General settings for supporting stored in Rappen.XTB.Settings.xml
+
+    #region Supporters stored in Rappen.XTB.Supporters.xml
+
     public class Supporters : List<Supporter>
     {
-        private const string FileName = "Rappen.XTB.Supporters.xml";
+        private const string SupportersFileName = "Rappen.XTB.Supporters.xml";
 
         public static Supporters DownloadMy(Guid InstallationId, string toolname, bool contributionCounts)
         {
-            var result = new Uri(Supporting.GeneralSettingsURL, FileName).DownloadXml<Supporters>() ?? new Supporters();
+            var result = XmlAtomicStore.DownloadXml<Supporters>(Supporting.GeneralSettingsURL, SupportersFileName);
             result.Where(s =>
                 s.InstallationId != InstallationId ||
                 s.ToolName != toolname)
@@ -909,11 +1137,18 @@ For questions, contact me at https://jonasr.app/contact.";
         public override string ToString() => $"{InstallationId} {Type} {ToolName} {Date}";
     }
 
+    #endregion Supporters stored in Rappen.XTB.Supporters.xml
+
+    #region Locally stored tools by installation in Rappen.XTB.xml
+
     public class Installation
     {
         private const string FileName = "Rappen.XTB.xml";
         private int settingsversion = -1;
         internal ToolSettings toolsettings;
+
+        // Semaphore to prevent concurrent writes from multiple threads
+        private static readonly SemaphoreSlim _saveLock = new SemaphoreSlim(1, 1);
 
         public int SettingsVersion
         {
@@ -943,18 +1178,7 @@ For questions, contact me at https://jonasr.app/contact.";
 
         public static Installation Load(ToolSettings settings)
         {
-            string path = Path.Combine(Paths.SettingsPath, FileName);
-            var result = new Installation();
-            if (File.Exists(path))
-            {
-                try
-                {
-                    XmlDocument xmlDocument = new XmlDocument();
-                    xmlDocument.Load(path);
-                    result = (Installation)XmlSerializerHelper.Deserialize(xmlDocument.OuterXml, typeof(Installation));
-                }
-                catch { }
-            }
+            var result = XmlAtomicStore.Deserialize<Installation>(Path.Combine(Paths.SettingsPath, FileName));
             if (settings != null)
             {
                 result.Initialize(settings);
@@ -976,14 +1200,15 @@ For questions, contact me at https://jonasr.app/contact.";
             }
         }
 
-        public void Save()
+        /// <summary>
+        /// Asynchronously saves the installation data.
+        /// Uses a semaphore to guard against concurrent writes
+        /// and an atomic temp-file replace to prevent corruption.
+        /// </summary>
+        public Task SaveAsync(CancellationToken cancellationToken = default, bool runAsync = true)
         {
-            if (!Directory.Exists(Paths.SettingsPath))
-            {
-                Directory.CreateDirectory(Paths.SettingsPath);
-            }
             var path = Path.Combine(Paths.SettingsPath, FileName);
-            XmlSerializerHelper.SerializeToFile(this, path);
+            return XmlAtomicStore.SerializeAsync(this, path, runAsync: runAsync, writeThrough: true, useNamedMutex: true, cancellationToken: cancellationToken);
         }
 
         public void Remove()
@@ -1015,6 +1240,7 @@ For questions, contact me at https://jonasr.app/contact.";
         private Version _version;
         private string name;
 
+        internal string Acronym { get; private set; }
         internal Installation Installation;
 
         internal Version version
@@ -1084,13 +1310,13 @@ For questions, contact me at https://jonasr.app/contact.";
             }
         }
 
-        internal string Acronym { get; private set; }
-
         public string Version
         {
             get => _version.ToString();
             set { _version = new Version(value ?? "0.0.0.0"); }
         }
+
+        public int ExecuteCount;
 
         public DateTime FirstRunDate = DateTime.Now;
         public DateTime VersionRunDate;
@@ -1105,25 +1331,31 @@ For questions, contact me at https://jonasr.app/contact.";
             Name = name;
         }
 
-        public string GetUrlCorp()
+        public string GetUrlCorp(bool validate = true)
         {
-            if (string.IsNullOrEmpty(Installation.CompanyName) ||
-                string.IsNullOrEmpty(Installation.CompanyEmail) ||
-                string.IsNullOrEmpty(Installation.CompanyCountry))
+            if (validate)
             {
-                return null;
+                if (string.IsNullOrEmpty(Installation.CompanyName) ||
+                    string.IsNullOrEmpty(Installation.CompanyEmail) ||
+                    string.IsNullOrEmpty(Installation.CompanyCountry))
+                {
+                    return null;
+                }
             }
             return GenerateUrl(Installation.toolsettings.FormUrlCorporate, Installation.toolsettings.FormIdCorporate);
         }
 
-        public string GetUrlPersonal(bool contribute)
+        public string GetUrlPersonal(bool contribute, bool validate = true)
         {
-            if (string.IsNullOrEmpty(Installation.PersonalFirstName) ||
-                string.IsNullOrEmpty(Installation.PersonalLastName) ||
-                string.IsNullOrEmpty(Installation.PersonalEmail) ||
-                string.IsNullOrEmpty(Installation.PersonalCountry))
+            if (validate)
             {
-                return null;
+                if (string.IsNullOrEmpty(Installation.PersonalFirstName) ||
+                    string.IsNullOrEmpty(Installation.PersonalLastName) ||
+                    string.IsNullOrEmpty(Installation.PersonalEmail) ||
+                    string.IsNullOrEmpty(Installation.PersonalCountry))
+                {
+                    return null;
+                }
             }
             return GenerateUrl(contribute ? Installation.toolsettings.FormUrlContribute : Installation.toolsettings.FormUrlSupporting, contribute ? Installation.toolsettings.FormIdContribute : Installation.toolsettings.FormIdPersonal);
         }
@@ -1188,6 +1420,8 @@ For questions, contact me at https://jonasr.app/contact.";
         public override string ToString() => $"{Type}";
     }
 
+    #endregion Locally stored tools by installation in Rappen.XTB.xml
+
     public enum SupportType
     {
         None,
@@ -1196,5 +1430,14 @@ For questions, contact me at https://jonasr.app/contact.";
         Contribute,
         Already,
         Never
+    }
+
+    public enum ShowItFrom
+    {
+        Open,
+        Button,
+        Execute,
+        ToastCall,
+        Other
     }
 }

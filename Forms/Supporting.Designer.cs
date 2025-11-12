@@ -391,8 +391,8 @@
             this.btnSubmit.Padding = new System.Windows.Forms.Padding(8);
             this.btnSubmit.Size = new System.Drawing.Size(283, 62);
             this.btnSubmit.TabIndex = 4;
-            this.toolTip1.SetToolTip(this.btnSubmit, "Click to redirect to the Supporting form on website\r\nJonasR.app where you can fin" +
-        "allize your type of support.");
+            this.toolTip1.SetToolTip(this.btnSubmit, "Click this button to redirect to the Supporting form on website\r\nJonasR.app where" +
+        " you can finallize your type of support.");
             this.btnSubmit.UseVisualStyleBackColor = true;
             this.btnSubmit.Click += new System.EventHandler(this.btnSubmit_Click);
             // 
