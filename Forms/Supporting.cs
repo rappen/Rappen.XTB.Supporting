@@ -1046,7 +1046,7 @@ For questions, contact me at https://jonasr.app/contact.";
         public ToolSettings()
         { }
 
-        public static ToolSettings Get() => XmlAtomicStore.DownloadXml<ToolSettings>(Supporting.GeneralSettingsURL, SettingsFileName);
+        public static ToolSettings Get() => XmlAtomicStore.DownloadXml<ToolSettings>(Supporting.GeneralSettingsURL, SettingsFileName, Paths.SettingsPath);
 
         public SupportableTool this[string name]
         {
@@ -1116,7 +1116,7 @@ For questions, contact me at https://jonasr.app/contact.";
 
         public static Supporters DownloadMy(Guid InstallationId, string toolname, bool contributionCounts)
         {
-            var result = XmlAtomicStore.DownloadXml<Supporters>(Supporting.GeneralSettingsURL, SupportersFileName);
+            var result = XmlAtomicStore.DownloadXml<Supporters>(Supporting.GeneralSettingsURL, SupportersFileName, Paths.SettingsPath);
             result.Where(s =>
                 s.InstallationId != InstallationId ||
                 s.ToolName != toolname)
