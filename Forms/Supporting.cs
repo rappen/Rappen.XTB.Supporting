@@ -33,7 +33,6 @@ namespace Rappen.XTB
         private static bool isshowing;
         private readonly Stopwatch sw = new Stopwatch();
         private readonly Stopwatch swInfo = new Stopwatch();
-        private static Uri ToastLogo;
 
         #region Static Public Methods
 
@@ -140,13 +139,13 @@ namespace Rappen.XTB
         public static bool HandleToastActivation(PluginControlBase plugin, ToastNotificationActivatedEventArgsCompat args, AppInsights ai)
         {
             var toastArgs = ToastArguments.Parse(args.Argument);
-            if (!toastArgs.TryGetValue("supporting", out var type) || string.IsNullOrWhiteSpace(type))
+            if (!toastArgs.TryGetValue("action", out var type))
             {
                 return false;
             }
             switch (type)
             {
-                case "corporate":
+                case "supporting-corporate":
                     //ShowIf(plugin, ShowItFrom.ToastCall, true, false, ai, SupportType.Company);
                     VerifySettings(plugin.ToolName);
                     VerifyTool(plugin.ToolName);
@@ -154,7 +153,7 @@ namespace Rappen.XTB
                     OpenWebForm(tool.GetUrlCorp(false), SupportType.Company);
                     return true;
 
-                case "personal":
+                case "supporting-personal":
                     //ShowIf(plugin, ShowItFrom.ToastCall, true, false, ai, SupportType.Personal);
                     //return true;
                     VerifySettings(plugin.ToolName);
@@ -286,17 +285,26 @@ namespace Rappen.XTB
             {
                 case ShowItFrom.Open:
                     if (toastabletool.OpenPercentChance < random.Next(1, 101))
-                    {
+                    {   // Random didn't want to toast
                         return false;
                     }
                     break;
 
                 case ShowItFrom.Execute:
-                    if (tool.ExecuteCount < toastabletool.ExecuteStart ||
-                        (toastabletool.ExecuteEnd > 0 && tool.ExecuteCount > toastabletool.ExecuteEnd) ||
-                        (tool.ExecuteCount - toastabletool.ExecuteStart) % toastabletool.ExecuteInterval != 0 ||
-                        toastabletool.ExecutePercentChance < random.Next(1, 101))
-                    {
+                    if (tool.ExecuteCount < toastabletool.ExecuteStart)
+                    {   // Not executed enough yet
+                        return false;
+                    }
+                    if (toastabletool.ExecuteEnd > 0 && tool.ExecuteCount > toastabletool.ExecuteEnd)
+                    {   // Executed too many times, I give up
+                        return false;
+                    }
+                    if ((tool.ExecuteCount - toastabletool.ExecuteStart) % toastabletool.ExecuteInterval != 0)
+                    {   // Not the right execution interval
+                        return false;
+                    }
+                    if (toastabletool.ExecutePercentChance < random.Next(1, 101))
+                    {   // Random didn't want to toast
                         return false;
                     }
                     break;
@@ -304,24 +312,20 @@ namespace Rappen.XTB
                 default:
                     return false;
             }
+            if (tool.Support.ToasteDate.AddMinutes(toastabletool.MinutesBetweenToasts) > DateTime.Now)
+            {   // Don't do it too often
+                return false;
+            }
             try
             {
-                VerifyLocalLogoUri(tool.Acronym);
-                var toast = new ToastContentBuilder()
-                    .AddArgument("PluginControlId", plugin.PluginControlId.ToString())
-                    .AddHeader(plugin.ToolName, settings.ToastHeader.Replace("{tool}", plugin.ToolName), InstallationInfo.Instance.InstallationId.ToString())
-                    .AddText(settings.ToastText.Replace("{tool}", plugin.ToolName))
-                    .AddAttributionText(settings.ToastAttrText.Replace("{tool}", plugin.ToolName))
-                    .AddAppLogoOverride(ToastLogo)
-                    .AddButton(new ToastButton()
-                        .SetContent(settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName))
-                        .AddArgument("supporting", "corporate")
-                        .SetBackgroundActivation())
-                    .AddButton(new ToastButton()
-                        .SetContent(settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName)))
-                        .AddArgument("supporting", "personal")
-                        .SetBackgroundActivation();
-                toast.Show();
+                ToastHelper.ToastIt(plugin,
+                    settings.ToastHeader.Replace("{tool}", plugin.ToolName),
+                    settings.ToastText.Replace("{tool}", plugin.ToolName),
+                    settings.ToastAttrText.Replace("{tool}", plugin.ToolName),
+                    $"{GeneralSettingsURL}/Images/{tool.Acronym}150.png",
+                    (settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "supporting-corporate"),
+                    (settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "supporting-personal")
+                );
                 return true;
             }
             catch
@@ -386,35 +390,6 @@ namespace Rappen.XTB
             tool.Support.SubmittedDate = DateTime.Now;
             appinsights?.WriteEvent($"Supporting-{tool.Acronym}-{tool.Support.Type}");
             Process.Start(url);
-        }
-
-        private static void VerifyLocalLogoUri(string acronym)
-        {
-            var remote = new Uri($"{GeneralSettingsURL}/Images/{acronym}150.png");
-            try
-            {
-                if (ToastLogo != null && File.Exists(ToastLogo.LocalPath))
-                {
-                    return;
-                }
-                var imagesFolder = Path.GetFullPath(Path.Combine(Paths.PluginsPath, $"Rappen.XTB.{acronym}"));
-                Directory.CreateDirectory(imagesFolder);
-                var localPath = Path.Combine(imagesFolder, $"ToastLogo.png");
-                var needsDownload = !File.Exists(localPath) || new FileInfo(localPath).Length == 0;
-                if (needsDownload)
-                {
-                    ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-                    using (var wc = new WebClient())
-                    {
-                        wc.DownloadFile(remote, localPath);
-                    }
-                }
-                ToastLogo = new Uri(localPath); // file:// URI -> most reliable for Win32 toasts
-            }
-            catch
-            {
-                ToastLogo = remote;
-            }
         }
 
         #endregion Static Private Methods
@@ -1104,6 +1079,7 @@ For questions, contact me at https://jonasr.app/contact.";
         public int ExecuteInterval = 0;         // 70 - every 70'th execution
         public int ExecutePercentChance = 0;    // 5 % - random chance to toast when execute
         public int OpenPercentChance = 0;       // 20 % - random chance to toast when opening the tool
+        public int MinutesBetweenToasts = 0;    // 60 - minimum minutes between toasts
     }
 
     #endregion General settings for supporting stored in Rappen.XTB.Settings.xml
@@ -1396,6 +1372,7 @@ For questions, contact me at https://jonasr.app/contact.";
     public class Support
     {
         public DateTime AutoDisplayDate = DateTime.MinValue;
+        public DateTime ToasteDate = DateTime.MinValue;
         public int AutoDisplayCount;
         public DateTime SubmittedDate;
         public SupportType Type = SupportType.None;
