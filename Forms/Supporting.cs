@@ -38,7 +38,8 @@ namespace Rappen.XTB
 
         public static void ShowIf(PluginControlBase plugin, ShowItFrom from, bool manual, bool reload, AppInsights appins, SupportType? type = null, bool sync = false)
         {
-            if (plugin == null) return;
+            if (plugin == null)
+                return;
 
             if (sync)
             {
@@ -60,7 +61,9 @@ namespace Rappen.XTB
             catch (Exception ex)
             {
                 // Best-effort logging; avoids surfacing exceptions from fire-and-forget
-                try { plugin.LogError($"Supporting.ShowIfFireAndForget failed:\n{ex}"); } catch { }
+                try
+                { plugin.LogError($"Supporting.ShowIfFireAndForget failed:\n{ex}"); }
+                catch { }
             }
         }
 
@@ -139,7 +142,9 @@ namespace Rappen.XTB
         public static bool HandleToastActivation(PluginControlBase plugin, ToastNotificationActivatedEventArgsCompat args, AppInsights ai)
         {
             var toastArgs = ToastArguments.Parse(args.Argument);
-            if (!toastArgs.TryGetValue("action", out var type))
+            if (!toastArgs.TryGetValue("action", out var type) ||
+                !toastArgs.TryGetValue("sender", out var sender) ||
+                sender != "supporting")
             {
                 return false;
             }
@@ -285,7 +290,7 @@ namespace Rappen.XTB
             {
                 return false;
             }
-            if (tool.Support.ToasteDate.AddMinutes(toastabletool.MinutesBetweenToasts) > DateTime.Now)
+            if (tool.Support.ToastedDate.AddMinutes(toastabletool.MinutesBetweenToasts) > DateTime.Now)
             {   // Don't do it too often
                 return false;
             }
@@ -322,7 +327,9 @@ namespace Rappen.XTB
             }
             try
             {
-                ToastHelper.ToastIt(plugin,
+                ToastHelper.ToastIt(
+                    plugin,
+                    "supporting",
                     header: settings.ToastHeader.Replace("{tool}", plugin.ToolName),
                     text: settings.ToastText.Replace("{tool}", plugin.ToolName),
                     attribution: settings.ToastAttrText.Replace("{tool}", plugin.ToolName),
@@ -332,7 +339,7 @@ namespace Rappen.XTB
                         (settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "supporting-corporate"),
                         (settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "supporting-personal")]
                 );
-                tool.Support.ToasteDate = DateTime.Now;
+                tool.Support.ToastedDate = DateTime.Now;
                 _ = installation.SaveAsync();
                 return true;
             }
@@ -449,12 +456,18 @@ namespace Rappen.XTB
             {
                 var left = random.Next(0, 100);
                 var top = random.Next(0, 100);
-                if (left < 40) left = settings.CloseLinkHorizFromOrigMin;
-                else if (left > 60) left = settings.CloseLinkHorizFromOrigMax;
-                else left = (settings.CloseLinkHorizFromOrigMin + settings.CloseLinkHorizFromOrigMax) / 2;
-                if (top < 40) top = settings.CloseLinkVertiFromOrigMin;
-                else if (top > 60) top = settings.CloseLinkVertiFromOrigMax;
-                else top = (settings.CloseLinkVertiFromOrigMin + settings.CloseLinkVertiFromOrigMax) / 2;
+                if (left < 40)
+                    left = settings.CloseLinkHorizFromOrigMin;
+                else if (left > 60)
+                    left = settings.CloseLinkHorizFromOrigMax;
+                else
+                    left = (settings.CloseLinkHorizFromOrigMin + settings.CloseLinkHorizFromOrigMax) / 2;
+                if (top < 40)
+                    top = settings.CloseLinkVertiFromOrigMin;
+                else if (top > 60)
+                    top = settings.CloseLinkVertiFromOrigMax;
+                else
+                    top = (settings.CloseLinkVertiFromOrigMin + settings.CloseLinkVertiFromOrigMax) / 2;
                 linkClose.Left += left;
                 linkClose.Top += top;
             }
@@ -970,7 +983,7 @@ NOTE: It has to be submitted during the next step!";
 
         public string ToastHeader = "Support {tool} to keep it evolving!";
         public string ToastText = "⏱️ Saving time.\n💰 Making money.\n☕ More coffee.";
-        public string ToastAttrText = "Be fast — pick a button below to be part of some legendary development!";
+        public string ToastAttrText = "Be Rapp-id — pick one below, because legendary tools don’t build themselves!";
         public string ToastButtonCorporate = "Corporate Support";
         public string ToastButtonPersonal = "Personal Support";
 
@@ -1380,7 +1393,7 @@ For questions, contact me at https://jonasr.app/contact.";
     public class Support
     {
         public DateTime AutoDisplayDate = DateTime.MinValue;
-        public DateTime ToasteDate = DateTime.MinValue;
+        public DateTime ToastedDate = DateTime.MinValue;
         public int AutoDisplayCount;
         public DateTime SubmittedDate;
         public SupportType Type = SupportType.None;
@@ -1393,11 +1406,20 @@ For questions, contact me at https://jonasr.app/contact.";
             {
                 switch (UsersIndex)
                 {
-                    case 1: return "X-Small";
-                    case 2: return "Small";
-                    case 4: return "Large";
-                    case 5: return "X-Large";
-                    default: return "Medium";
+                    case 1:
+                        return "X-Small";
+
+                    case 2:
+                        return "Small";
+
+                    case 4:
+                        return "Large";
+
+                    case 5:
+                        return "X-Large";
+
+                    default:
+                        return "Medium";
                 }
             }
         }
