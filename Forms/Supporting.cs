@@ -162,6 +162,10 @@ namespace Rappen.XTB
                     OpenWebForm(tool.GetUrlPersonal(false, false), SupportType.Personal);
                     return true;
 
+                case "default":
+                    ShowIf(plugin, ShowItFrom.Button, true, false, ai);
+                    return true;
+
                 default:
                     return false;
             }
@@ -272,13 +276,17 @@ namespace Rappen.XTB
                 tool.Support.AutoDisplayCount++;
             }
             _ = installation.SaveAsync();
-            return false;
+            return true;
         }
 
         private static bool ShowIfToast(PluginControlBase plugin, ShowItFrom from)
         {
             if (toastabletool?.Enabled != true)
             {
+                return false;
+            }
+            if (tool.Support.ToasteDate.AddMinutes(toastabletool.MinutesBetweenToasts) > DateTime.Now)
+            {   // Don't do it too often
                 return false;
             }
             switch (from)
@@ -312,20 +320,20 @@ namespace Rappen.XTB
                 default:
                     return false;
             }
-            if (tool.Support.ToasteDate.AddMinutes(toastabletool.MinutesBetweenToasts) > DateTime.Now)
-            {   // Don't do it too often
-                return false;
-            }
             try
             {
                 ToastHelper.ToastIt(plugin,
-                    settings.ToastHeader.Replace("{tool}", plugin.ToolName),
-                    settings.ToastText.Replace("{tool}", plugin.ToolName),
-                    settings.ToastAttrText.Replace("{tool}", plugin.ToolName),
-                    $"{GeneralSettingsURL}/Images/{tool.Acronym}150.png",
-                    (settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "supporting-corporate"),
-                    (settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "supporting-personal")
+                    header: settings.ToastHeader.Replace("{tool}", plugin.ToolName),
+                    text: settings.ToastText.Replace("{tool}", plugin.ToolName),
+                    attribution: settings.ToastAttrText.Replace("{tool}", plugin.ToolName),
+                    logo: $"{GeneralSettingsURL}/Images/{tool.Acronym}150.png",
+                    hero: $"{GeneralSettingsURL}/Images/SupportingHero.png",
+                    buttons: [
+                        (settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "supporting-corporate"),
+                        (settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "supporting-personal")]
                 );
+                tool.Support.ToasteDate = DateTime.Now;
+                _ = installation.SaveAsync();
                 return true;
             }
             catch
