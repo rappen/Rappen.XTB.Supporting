@@ -150,7 +150,7 @@ namespace Rappen.XTB
             }
             switch (type)
             {
-                case "supporting-corporate":
+                case "corporate":
                     //ShowIf(plugin, ShowItFrom.ToastCall, true, false, ai, SupportType.Company);
                     VerifySettings(plugin.ToolName);
                     VerifyTool(plugin.ToolName);
@@ -158,7 +158,7 @@ namespace Rappen.XTB
                     OpenWebForm(tool.GetUrlCorp(false), SupportType.Company);
                     return true;
 
-                case "supporting-personal":
+                case "personal":
                     //ShowIf(plugin, ShowItFrom.ToastCall, true, false, ai, SupportType.Personal);
                     //return true;
                     VerifySettings(plugin.ToolName);
@@ -335,9 +335,11 @@ namespace Rappen.XTB
                     attribution: settings.ToastAttrText.Replace("{tool}", plugin.ToolName),
                     logo: $"{GeneralSettingsURL}/Images/{tool.Acronym}150.png",
                     hero: $"{GeneralSettingsURL}/Images/SupportingHero.png",
-                    buttons: [
-                        (settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "supporting-corporate"),
-                        (settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "supporting-personal")]
+                    buttons:
+                    [
+                        (settings.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "corporate"),
+                        (settings.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "personal")
+                    ]
                 );
                 tool.Support.ToastedDate = DateTime.Now;
                 _ = installation.SaveAsync();
