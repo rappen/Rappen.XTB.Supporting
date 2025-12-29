@@ -14,7 +14,7 @@ namespace Rappen.XTB
 {
     public partial class Supporting : Form
     {
-        private static RappXTBInstallation installation;
+        private static Installation installation;
         private static Tool tool;
         private static Supporters supporters;
         private static SupportableTool supportabletool;
@@ -27,7 +27,7 @@ namespace Rappen.XTB
 
         #region Static Public Methods
 
-        public static void ShowIf(RappXTBControlBase plugin, ShowItFrom from, bool manual, bool reload, SupportType? type = null, bool sync = false)
+        public static void ShowIf(RappPluginControlBase plugin, ShowItFrom from, bool manual, bool reload, SupportType? type = null, bool sync = false)
         {
             if (plugin == null)
             {
@@ -88,7 +88,7 @@ namespace Rappen.XTB
                 return false;
             }
 
-            if (tool.Support.SubmittedDate.AddMinutes(RappXTBSettings.Instance.ShowMinutesAfterSubmitting) < DateTime.Now)
+            if (tool.Support.SubmittedDate.AddMinutes(Settings.Instance.ShowMinutesAfterSubmitting) < DateTime.Now)
             {
                 return false;
             }
@@ -144,16 +144,16 @@ namespace Rappen.XTB
         /// <param name="ai">The application insights instance used for telemetry and logging.</param>
         /// <returns><see langword="true"/> if the toast activation was successfully handled and an action was performed;
         /// otherwise, <see langword="false"/>.</returns>
-        public static bool HandleToastActivation(RappXTBControlBase plugin, ToastNotificationActivatedEventArgsCompat args, AppInsights ai)
+        public static bool HandleToastActivation(RappPluginControlBase plugin, ToastNotificationActivatedEventArgsCompat args, AppInsights ai)
         {
             var toastArgs = ToastArguments.Parse(args.Argument);
-            if (!toastArgs.TryGetValue("action", out var type) ||
+            if (!toastArgs.TryGetValue("action", out var action) ||
                 !toastArgs.TryGetValue("sender", out var sender) ||
                 sender != "supporting")
             {
                 return false;
             }
-            switch (type)
+            switch (action)
             {
                 case "corporate":
                     //ShowIf(plugin, ShowItFrom.ToastCall, true, false, ai, SupportType.Company);
@@ -185,7 +185,7 @@ namespace Rappen.XTB
 
         #region Static Private Methods
 
-        private static void ShowIfInternal(RappXTBControlBase plugin, ShowItFrom from, bool manual, bool reload, SupportType? type = null)
+        private static void ShowIfInternal(RappPluginControlBase plugin, ShowItFrom from, bool manual, bool reload, SupportType? type = null)
         {
             var toolname = plugin?.ToolName;
             appinsights = plugin.AppInsights;
@@ -245,24 +245,24 @@ namespace Rappen.XTB
                 {   // Centerally stopping showing automatically
                     return false;
                 }
-                else if (tool.FirstRunDate.AddMinutes(RappXTBSettings.Instance.ShowMinutesAfterToolInstall) > DateTime.Now)
+                else if (tool.FirstRunDate.AddMinutes(Settings.Instance.ShowMinutesAfterToolInstall) > DateTime.Now)
                 {   // Installed it too soon
                     return false;
                 }
                 else if (tool.VersionRunDate > tool.FirstRunDate &&
-                    tool.VersionRunDate.AddMinutes(RappXTBSettings.Instance.ShowMinutesAfterToolNewVersion) > DateTime.Now)
+                    tool.VersionRunDate.AddMinutes(Settings.Instance.ShowMinutesAfterToolNewVersion) > DateTime.Now)
                 {   // Installed this version too soon
                     return false;
                 }
-                else if (tool.Support.AutoDisplayDate.AddMinutes(RappXTBSettings.Instance.ShowMinutesAfterSupportingShown) > DateTime.Now)
+                else if (tool.Support.AutoDisplayDate.AddMinutes(Settings.Instance.ShowMinutesAfterSupportingShown) > DateTime.Now)
                 {   // Seen this form to soon
                     return false;
                 }
-                else if (tool.Support.AutoDisplayCount >= RappXTBSettings.Instance.ShowAutoRepeatTimes)
+                else if (tool.Support.AutoDisplayCount >= Settings.Instance.ShowAutoRepeatTimes)
                 {   // Seen this too many times
                     return false;
                 }
-                else if (tool.Support.SubmittedDate.AddMinutes(RappXTBSettings.Instance.ShowMinutesAfterSubmitting) > DateTime.Now)
+                else if (tool.Support.SubmittedDate.AddMinutes(Settings.Instance.ShowMinutesAfterSubmitting) > DateTime.Now)
                 {   // Submitted too soon for JR to handle it
                     return false;
                 }
@@ -335,15 +335,15 @@ namespace Rappen.XTB
                 ToastHelper.ToastIt(
                     plugin,
                     "supporting",
-                    header: RappXTBSettings.Instance.ToastHeader.Replace("{tool}", plugin.ToolName),
-                    text: RappXTBSettings.Instance.ToastText.Replace("{tool}", plugin.ToolName),
-                    attribution: RappXTBSettings.Instance.ToastAttrText.Replace("{tool}", plugin.ToolName),
-                    logo: $"{RappXTBSettings.URL}/Images/{tool.Acronym}150.png",
-                    hero: $"{RappXTBSettings.URL}/Images/SupportingHero.png",
+                    header: Settings.Instance.ToastHeader.Replace("{tool}", plugin.ToolName),
+                    text: Settings.Instance.ToastText.Replace("{tool}", plugin.ToolName),
+                    attribution: Settings.Instance.ToastAttrText.Replace("{tool}", plugin.ToolName),
+                    logo: $"{Settings.URL}/Images/{tool.Acronym}150.png",
+                    hero: $"{Settings.URL}/Images/SupportingHero.png",
                     buttons:
                     [
-                        (RappXTBSettings.Instance.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "corporate"),
-                        (RappXTBSettings.Instance.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "personal")
+                        (Settings.Instance.ToastButtonCorporate.Replace("{tool}", plugin.ToolName), "corporate"),
+                        (Settings.Instance.ToastButtonPersonal.Replace("{tool}", plugin.ToolName), "personal")
                     ]
                 );
                 tool.Support.ToastedDate = DateTime.Now;
@@ -360,11 +360,11 @@ namespace Rappen.XTB
         {
             if (reload)
             {
-                RappXTBSettings.Reset();
-                supportabletool = RappXTBSettings.Instance[toolname];
-                toastabletool = RappXTBSettings.Instance.GetToastableTool(toolname);
+                Settings.Reset();
                 //RappPluginSettings.Instance.Save();    // this is only to get a correct format of the tool settings file
             }
+            supportabletool = Settings.Instance[toolname];
+            toastabletool = Settings.Instance.GetToastableTool(toolname);
         }
 
         private static void VerifyTool(string toolname, bool reload = false)
@@ -372,7 +372,7 @@ namespace Rappen.XTB
             if (reload || installation == null || tool == null)
             {
                 supporters = null;
-                installation = RappXTBInstallation.Load();
+                installation = Installation.Load();
                 tool = installation[toolname];
                 var version = Assembly.GetExecutingAssembly().GetName().Version;
                 if (tool.version != version)
@@ -397,7 +397,7 @@ namespace Rappen.XTB
             if (tool.Support.Type != SupportType.None &&
                 tool.Support.Type != SupportType.Never &&
                 tool.Support.SubmittedDate > DateTime.MinValue &&
-                tool.Support.SubmittedDate.AddDays(RappXTBSettings.Instance.ResetUnfinalizedSupportingAfterDays) < DateTime.Now &&
+                tool.Support.SubmittedDate.AddDays(Settings.Instance.ResetUnfinalizedSupportingAfterDays) < DateTime.Now &&
                 supporters?.Any(s => s.Type == tool.Support.Type) == false)
             {
                 tool.Support.Type = SupportType.None;
@@ -448,7 +448,7 @@ namespace Rappen.XTB
 
         private void SetRandomPositions()
         {
-            if (RappXTBSettings.Instance.BMACLinkPositionRandom == true)
+            if (Settings.Instance.BMACLinkPositionRandom == true)
             {
                 if (random.Next(100) < 50)
                 {
@@ -459,34 +459,34 @@ namespace Rappen.XTB
                     picBuyMeACoffee.Left = btnInfo.Left - 2;
                 }
             }
-            if (RappXTBSettings.Instance.CloseLinkPositionRandom == true)
+            if (Settings.Instance.CloseLinkPositionRandom == true)
             {
                 var left = random.Next(0, 100);
                 var top = random.Next(0, 100);
                 if (left < 40)
                 {
-                    left = RappXTBSettings.Instance.CloseLinkHorizFromOrigMin;
+                    left = Settings.Instance.CloseLinkHorizFromOrigMin;
                 }
                 else if (left > 60)
                 {
-                    left = RappXTBSettings.Instance.CloseLinkHorizFromOrigMax;
+                    left = Settings.Instance.CloseLinkHorizFromOrigMax;
                 }
                 else
                 {
-                    left = (RappXTBSettings.Instance.CloseLinkHorizFromOrigMin + RappXTBSettings.Instance.CloseLinkHorizFromOrigMax) / 2;
+                    left = (Settings.Instance.CloseLinkHorizFromOrigMin + Settings.Instance.CloseLinkHorizFromOrigMax) / 2;
                 }
 
                 if (top < 40)
                 {
-                    top = RappXTBSettings.Instance.CloseLinkVertiFromOrigMin;
+                    top = Settings.Instance.CloseLinkVertiFromOrigMin;
                 }
                 else if (top > 60)
                 {
-                    top = RappXTBSettings.Instance.CloseLinkVertiFromOrigMax;
+                    top = Settings.Instance.CloseLinkVertiFromOrigMax;
                 }
                 else
                 {
-                    top = (RappXTBSettings.Instance.CloseLinkVertiFromOrigMin + RappXTBSettings.Instance.CloseLinkVertiFromOrigMax) / 2;
+                    top = (Settings.Instance.CloseLinkVertiFromOrigMin + Settings.Instance.CloseLinkVertiFromOrigMax) / 2;
                 }
 
                 linkClose.Left += left;
@@ -529,28 +529,28 @@ namespace Rappen.XTB
             switch (supporter?.Type)
             {
                 case SupportType.Company:
-                    linkStatus.Text = RappXTBSettings.Instance.StatusCompanyText.Replace("{tool}", tool.Name);
-                    toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusCompanyTip.Replace("{tool}", tool.Name));
+                    linkStatus.Text = Settings.Instance.StatusCompanyText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusCompanyTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Personal:
-                    linkStatus.Text = RappXTBSettings.Instance.StatusPersonalText.Replace("{tool}", tool.Name);
-                    toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusPersonalTip.Replace("{tool}", tool.Name));
+                    linkStatus.Text = Settings.Instance.StatusPersonalText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusPersonalTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Contribute:
-                    linkStatus.Text = RappXTBSettings.Instance.StatusContributeText.Replace("{tool}", tool.Name);
-                    toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusContributeTip.Replace("{tool}", tool.Name));
+                    linkStatus.Text = Settings.Instance.StatusContributeText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusContributeTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Already:
-                    linkStatus.Text = RappXTBSettings.Instance.StatusAlreadyText.Replace("{tool}", tool.Name);
-                    toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusAlreadyTip.Replace("{tool}", tool.Name));
+                    linkStatus.Text = Settings.Instance.StatusAlreadyText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusAlreadyTip.Replace("{tool}", tool.Name));
                     break;
 
                 case SupportType.Never:
-                    linkStatus.Text = RappXTBSettings.Instance.StatusNeverText.Replace("{tool}", tool.Name);
-                    toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusNeverTip.Replace("{tool}", tool.Name));
+                    linkStatus.Text = Settings.Instance.StatusNeverText.Replace("{tool}", tool.Name);
+                    toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusNeverTip.Replace("{tool}", tool.Name));
                     clickable = false;
                     break;
 
@@ -561,20 +561,20 @@ namespace Rappen.XTB
                         case SupportType.Personal:
                         case SupportType.Contribute:
                         case SupportType.Already:
-                            linkStatus.Text = RappXTBSettings.Instance.StatusPendingText.Replace("{tool}", tool.Name);
-                            toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusPendingTip.Replace("{tool}", tool.Name));
+                            linkStatus.Text = Settings.Instance.StatusPendingText.Replace("{tool}", tool.Name);
+                            toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusPendingTip.Replace("{tool}", tool.Name));
                             clickable = false;
                             break;
 
                         case SupportType.Never:
-                            linkStatus.Text = RappXTBSettings.Instance.StatusNeverText.Replace("{tool}", tool.Name);
-                            toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusNeverTip.Replace("{tool}", tool.Name));
+                            linkStatus.Text = Settings.Instance.StatusNeverText.Replace("{tool}", tool.Name);
+                            toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusNeverTip.Replace("{tool}", tool.Name));
                             clickable = false;
                             break;
 
                         default:
-                            linkStatus.Text = RappXTBSettings.Instance.StatusDefaultText.Replace("{tool}", tool.Name);
-                            toolTip1.SetToolTip(linkStatus, RappXTBSettings.Instance.StatusDefaultTip.Replace("{tool}", tool.Name));
+                            linkStatus.Text = Settings.Instance.StatusDefaultText.Replace("{tool}", tool.Name);
+                            toolTip1.SetToolTip(linkStatus, Settings.Instance.StatusDefaultTip.Replace("{tool}", tool.Name));
                             linkStatus.Tag = SupportType.Already;
                             break;
                     }
@@ -592,21 +592,21 @@ namespace Rappen.XTB
 
         private void ResetAllColors()
         {
-            panBgBlue.BackColor = RappXTBSettings.Instance.clrBackground;
-            panInfoBg.BackColor = RappXTBSettings.Instance.clrBackground;
-            helpText.BackColor = RappXTBSettings.Instance.clrBackground;
-            rbCompany.ForeColor = rbCompany.Checked ? RappXTBSettings.Instance.clrTxtFgNormal : RappXTBSettings.Instance.clrTxtFgDimmed;
-            rbPersonal.ForeColor = rbPersonal.Checked ? RappXTBSettings.Instance.clrTxtFgNormal : RappXTBSettings.Instance.clrTxtFgDimmed;
-            rbContribute.ForeColor = rbContribute.Checked ? RappXTBSettings.Instance.clrTxtFgNormal : RappXTBSettings.Instance.clrTxtFgDimmed;
-            txtCompanyName.BackColor = RappXTBSettings.Instance.clrFldBgNormal;
-            txtCompanyEmail.BackColor = RappXTBSettings.Instance.clrFldBgNormal;
-            txtCompanyCountry.BackColor = RappXTBSettings.Instance.clrFldBgNormal;
-            txtPersonalFirst.BackColor = RappXTBSettings.Instance.clrFldBgNormal;
-            txtPersonalLast.BackColor = RappXTBSettings.Instance.clrFldBgNormal;
-            txtPersonalEmail.BackColor = RappXTBSettings.Instance.clrFldBgNormal;
-            txtPersonalCountry.BackColor = RappXTBSettings.Instance.clrFldBgNormal;
-            linkStatus.ForeColor = RappXTBSettings.Instance.clrTxtFgDimmed;
-            linkClose.LinkColor = RappXTBSettings.Instance.clrTxtFgDimmed;
+            panBgBlue.BackColor = Settings.Instance.clrBackground;
+            panInfoBg.BackColor = Settings.Instance.clrBackground;
+            helpText.BackColor = Settings.Instance.clrBackground;
+            rbCompany.ForeColor = rbCompany.Checked ? Settings.Instance.clrTxtFgNormal : Settings.Instance.clrTxtFgDimmed;
+            rbPersonal.ForeColor = rbPersonal.Checked ? Settings.Instance.clrTxtFgNormal : Settings.Instance.clrTxtFgDimmed;
+            rbContribute.ForeColor = rbContribute.Checked ? Settings.Instance.clrTxtFgNormal : Settings.Instance.clrTxtFgDimmed;
+            txtCompanyName.BackColor = Settings.Instance.clrFldBgNormal;
+            txtCompanyEmail.BackColor = Settings.Instance.clrFldBgNormal;
+            txtCompanyCountry.BackColor = Settings.Instance.clrFldBgNormal;
+            txtPersonalFirst.BackColor = Settings.Instance.clrFldBgNormal;
+            txtPersonalLast.BackColor = Settings.Instance.clrFldBgNormal;
+            txtPersonalEmail.BackColor = Settings.Instance.clrFldBgNormal;
+            txtPersonalCountry.BackColor = Settings.Instance.clrFldBgNormal;
+            linkStatus.ForeColor = Settings.Instance.clrTxtFgDimmed;
+            linkClose.LinkColor = Settings.Instance.clrTxtFgDimmed;
         }
 
         private void SettingSupportType(SupportType type)
@@ -676,7 +676,7 @@ namespace Rappen.XTB
             if (sender == null || sender == txtCompanyName)
             {
                 installation.CompanyName = txtCompanyName.Text.Trim().Length >= 3 ? txtCompanyName.Text.Trim() : "";
-                txtCompanyName.BackColor = string.IsNullOrEmpty(installation.CompanyName) ? RappXTBSettings.Instance.clrFldBgInvalid : RappXTBSettings.Instance.clrFldBgNormal;
+                txtCompanyName.BackColor = string.IsNullOrEmpty(installation.CompanyName) ? Settings.Instance.clrFldBgInvalid : Settings.Instance.clrFldBgNormal;
             }
             if (sender == null || sender == txtCompanyEmail)
             {
@@ -685,12 +685,12 @@ namespace Rappen.XTB
                     installation.CompanyEmail = new MailAddress(txtCompanyEmail.Text).Address.Trim();
                 }
                 catch { }
-                txtCompanyEmail.BackColor = string.IsNullOrEmpty(installation.CompanyEmail) ? RappXTBSettings.Instance.clrFldBgInvalid : RappXTBSettings.Instance.clrFldBgNormal;
+                txtCompanyEmail.BackColor = string.IsNullOrEmpty(installation.CompanyEmail) ? Settings.Instance.clrFldBgInvalid : Settings.Instance.clrFldBgNormal;
             }
             if (sender == null || sender == txtCompanyCountry)
             {
                 installation.CompanyCountry = txtCompanyCountry.Text.Trim().Length >= 2 ? txtCompanyCountry.Text.Trim() : "";
-                txtCompanyCountry.BackColor = string.IsNullOrEmpty(installation.CompanyCountry) ? RappXTBSettings.Instance.clrFldBgInvalid : RappXTBSettings.Instance.clrFldBgNormal;
+                txtCompanyCountry.BackColor = string.IsNullOrEmpty(installation.CompanyCountry) ? Settings.Instance.clrFldBgInvalid : Settings.Instance.clrFldBgNormal;
             }
             if (sender == null || sender == chkCompanySendInvoice)
             {
@@ -699,12 +699,12 @@ namespace Rappen.XTB
             if (sender == null || sender == txtPersonalFirst)
             {
                 installation.PersonalFirstName = txtPersonalFirst.Text.Trim().Length >= 1 ? txtPersonalFirst.Text.Trim() : "";
-                txtPersonalFirst.BackColor = string.IsNullOrEmpty(installation.PersonalFirstName) ? RappXTBSettings.Instance.clrFldBgInvalid : RappXTBSettings.Instance.clrFldBgNormal;
+                txtPersonalFirst.BackColor = string.IsNullOrEmpty(installation.PersonalFirstName) ? Settings.Instance.clrFldBgInvalid : Settings.Instance.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalLast)
             {
                 installation.PersonalLastName = txtPersonalLast.Text.Trim().Length >= 2 ? txtPersonalLast.Text.Trim() : "";
-                txtPersonalLast.BackColor = string.IsNullOrEmpty(installation.PersonalLastName) ? RappXTBSettings.Instance.clrFldBgInvalid : RappXTBSettings.Instance.clrFldBgNormal;
+                txtPersonalLast.BackColor = string.IsNullOrEmpty(installation.PersonalLastName) ? Settings.Instance.clrFldBgInvalid : Settings.Instance.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalEmail)
             {
@@ -713,12 +713,12 @@ namespace Rappen.XTB
                     installation.PersonalEmail = new MailAddress(txtPersonalEmail.Text).Address.Trim();
                 }
                 catch { }
-                txtPersonalEmail.BackColor = string.IsNullOrEmpty(installation.PersonalEmail) ? RappXTBSettings.Instance.clrFldBgInvalid : RappXTBSettings.Instance.clrFldBgNormal;
+                txtPersonalEmail.BackColor = string.IsNullOrEmpty(installation.PersonalEmail) ? Settings.Instance.clrFldBgInvalid : Settings.Instance.clrFldBgNormal;
             }
             if (sender == null || sender == txtPersonalCountry)
             {
                 installation.PersonalCountry = txtPersonalCountry.Text.Trim().Length >= 2 ? txtPersonalCountry.Text.Trim() : "";
-                txtPersonalCountry.BackColor = string.IsNullOrEmpty(installation.PersonalCountry) ? RappXTBSettings.Instance.clrFldBgInvalid : RappXTBSettings.Instance.clrFldBgNormal;
+                txtPersonalCountry.BackColor = string.IsNullOrEmpty(installation.PersonalCountry) ? Settings.Instance.clrFldBgInvalid : Settings.Instance.clrFldBgNormal;
             }
             if (sender == null || sender == chkPersonalContactMe)
             {
@@ -746,9 +746,9 @@ namespace Rappen.XTB
         private void rbType_CheckedChanged(object sender, EventArgs e)
         {
             SuspendLayout();
-            rbCompany.ForeColor = rbCompany.Checked ? RappXTBSettings.Instance.clrTxtFgNormal : RappXTBSettings.Instance.clrTxtFgDimmed;
-            rbPersonal.ForeColor = rbPersonal.Checked ? RappXTBSettings.Instance.clrTxtFgNormal : RappXTBSettings.Instance.clrTxtFgDimmed;
-            rbContribute.ForeColor = rbContribute.Checked ? RappXTBSettings.Instance.clrTxtFgNormal : RappXTBSettings.Instance.clrTxtFgDimmed;
+            rbCompany.ForeColor = rbCompany.Checked ? Settings.Instance.clrTxtFgNormal : Settings.Instance.clrTxtFgDimmed;
+            rbPersonal.ForeColor = rbPersonal.Checked ? Settings.Instance.clrTxtFgNormal : Settings.Instance.clrTxtFgDimmed;
+            rbContribute.ForeColor = rbContribute.Checked ? Settings.Instance.clrTxtFgNormal : Settings.Instance.clrTxtFgDimmed;
             panPersonal.Left = panCorp.Left;
             panPersonal.Top = panCorp.Top;
             lblPersonalIntro.Text = rbContribute.Checked ? "I will contribute with my experience and knowledge!" : "I will monetarily support this tool!";
@@ -770,9 +770,9 @@ namespace Rappen.XTB
             panInfo.Tag = sender;
             if (visible)
             {
-                helpTitle.Text = RappXTBSettings.Instance.HelpWhyTitle;
+                helpTitle.Text = Settings.Instance.HelpWhyTitle;
                 helpText.Text = string.Empty;
-                helpText.Text = RappXTBSettings.Instance.HelpWhyText.Replace("\r\n", "\n").Replace("\n", "\r\n");
+                helpText.Text = Settings.Instance.HelpWhyText.Replace("\r\n", "\n").Replace("\n", "\r\n");
             }
             panInfo.Visible = visible;
         }
@@ -783,9 +783,9 @@ namespace Rappen.XTB
             panInfo.Tag = sender;
             if (visible)
             {
-                helpTitle.Text = RappXTBSettings.Instance.HelpInfoTitle;
+                helpTitle.Text = Settings.Instance.HelpInfoTitle;
                 helpText.Text = string.Empty;
-                helpText.Text = RappXTBSettings.Instance.HelpInfoText.Replace("\r\n", "\n").Replace("\n", "\r\n");
+                helpText.Text = Settings.Instance.HelpInfoText.Replace("\r\n", "\n").Replace("\n", "\r\n");
             }
             panInfo.Visible = visible;
         }
@@ -851,15 +851,15 @@ namespace Rappen.XTB
         {
             if (sender is RadioButton rb)
             {
-                rb.ForeColor = RappXTBSettings.Instance.clrTxtFgNormal;
+                rb.ForeColor = Settings.Instance.clrTxtFgNormal;
             }
             else if (sender is LinkLabel link)
             {
-                link.LinkColor = RappXTBSettings.Instance.clrTxtFgNormal;
+                link.LinkColor = Settings.Instance.clrTxtFgNormal;
             }
             else if (sender is Label lbl)
             {
-                lbl.ForeColor = RappXTBSettings.Instance.clrTxtFgNormal;
+                lbl.ForeColor = Settings.Instance.clrTxtFgNormal;
             }
         }
 
@@ -869,16 +869,16 @@ namespace Rappen.XTB
             {
                 if (!rb.Checked)
                 {
-                    rb.ForeColor = RappXTBSettings.Instance.clrTxtFgDimmed;
+                    rb.ForeColor = Settings.Instance.clrTxtFgDimmed;
                 }
             }
             else if (sender is LinkLabel link)
             {
-                link.LinkColor = RappXTBSettings.Instance.clrTxtFgDimmed;
+                link.LinkColor = Settings.Instance.clrTxtFgDimmed;
             }
             else if (sender is Label lbl)
             {
-                lbl.ForeColor = RappXTBSettings.Instance.clrTxtFgDimmed;
+                lbl.ForeColor = Settings.Instance.clrTxtFgDimmed;
             }
         }
 
@@ -907,7 +907,7 @@ namespace Rappen.XTB
 
         public static Supporters DownloadMy(Guid InstallationId, string toolname, bool contributionCounts)
         {
-            var result = XmlAtomicStore.DownloadXml<Supporters>(RappXTBSettings.URL, SupportersFileName, Paths.SettingsPath);
+            var result = XmlAtomicStore.DownloadXml<Supporters>(Settings.URL, SupportersFileName, Paths.SettingsPath);
             result.Where(s =>
                 s.InstallationId != InstallationId ||
                 s.ToolName != toolname)
